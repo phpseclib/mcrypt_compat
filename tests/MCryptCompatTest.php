@@ -3,7 +3,7 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
 {
     public function testAlgorithmList()
     {
-        this->assertInternalType('array', phpseclib_mcrypt_list_algorithms());
+        $this->assertInternalType('array', phpseclib_mcrypt_list_algorithms());
     }
     
     public function testAESBasicSuccess()
