@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit bootstrap="lib/mcrypt.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="phpseclib Unit Test Suite">
+            <directory>./tests/</directory>
+        </testsuite>
+    </testsuites>
+
+    <!-- Code Coverage -->
+<!--
+    <filter>
+        <whitelist>
+            <directory>./phpseclib/</directory>
+        </whitelist>
+    </filter>
+-->
+</phpunit>

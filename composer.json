@@ -1,0 +1,36 @@
+{
+    "name":         "phpseclib/mcrypt_compat",
+    "description":  "PHP 7.1 polyfill for the mcrypt extension from PHP <= 7.0",
+    "keywords": [
+            "mcrypt",
+            "encryption",
+            "cryptograpy"
+        ],
+    "license":      "MIT",
+    "type":         "library",
+    "authors": [
+            {
+                "name":     "Jim Wigginton",
+                "email":    "terrafrost@php.net",
+                "homepage": "http://phpseclib.sourceforge.net"
+            }
+        ],
+    "support": {
+        "issues":   "https://github.com/phpseclib/mcrypt_compat/issues",
+        "email":    "terrafrost@php.net",
+        "source":   "https://github.com/phpseclib/mcrypt_compat"
+    },
+    "require": {
+        "php": ">=5.3.0",
+        "phpseclib/phpseclib": "~2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.*|5.*"
+    },
+    "suggest": {
+        "ext-openssl": "Will enable faster cryptographic operations"
+    },
+    "autoload": {
+        "files": ["lib/mcrypt.php"]
+    }
+}
