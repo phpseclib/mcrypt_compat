@@ -35,4 +35,39 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
     {
         phpseclib_mcrypt_encrypt('rijndael-128', 'abc', 'asdf', 'cbc', 'zz');
     }
+
+    /**
+     * in theory, in continuous mode, you ought to be able to encrypt / decrypt successive substring's of a
+     * cipher/plain-text and get the same result as you would if you did the whole cipher/plain-text in one
+     * go but with mcrypt you can't whereas with mcrypt_compat you can. imho this is a bug in mcrypt and it's
+     * not behavior that mcrypt_compat emulates. testMcryptNCFB() and testPhpseclibNCFB() demonstrate
+     */
+    public function ncfbHelper($prefix)
+    {
+        $td = call_user_func($prefix . 'mcrypt_module_open', 'rijndael-128', '', 'ncfb', '');
+        call_user_func($prefix . 'mcrypt_generic_init', $td, str_repeat('a', 16), str_repeat('a', 16));
+        $blocks = array(10, 5, 17, 16);
+        $v1 = $v2 = '';
+        foreach ($blocks as $block) {
+            $v1.= call_user_func($prefix . 'mdecrypt_generic', $td, str_repeat('c', $block));
+            $v2.= str_repeat('c', $block);
+        }
+        call_user_func($prefix . 'mcrypt_generic_deinit', $td);
+        call_user_func($prefix . 'mcrypt_generic_init', $td, str_repeat('a', 16), str_repeat('a', 16));
+        $v2 = call_user_func($prefix . 'mdecrypt_generic', $td, $v2);
+
+        return array($v1, $v2);
+    }
+
+    public function testMcryptNCFB()
+    {
+        list($v1, $v2) = $this->ncfbHelper('');
+        $this->assertNotSame($v1, $v2);
+    }
+
+    public function testPhpseclibNCFB()
+    {
+        list($v1, $v2) = $this->ncfbHelper('phpseclib_');
+        $this->assertSame($v1, $v2);
+    }
 }
