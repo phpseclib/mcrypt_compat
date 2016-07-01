@@ -25,8 +25,8 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
 
         $ciphertext = $mcrypt;
 
-        $mcrypt = bin2hex(mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv));
-        $compat = bin2hex(phpseclib_mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv));
+        $mcrypt = mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv);
+        $compat = phpseclib_mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv);
         $this->assertEquals($mcrypt, $compat);
 
         $decrypted = $mcrypt;
