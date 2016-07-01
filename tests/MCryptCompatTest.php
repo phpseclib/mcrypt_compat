@@ -11,6 +11,28 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
         $this->assertInternalType('array', phpseclib_mcrypt_list_algorithms());
     }
 
+    public function testAESBasicSuccess()
+    {
+        $key = str_repeat('z', 16);
+        $iv = str_repeat('z', 16);
+
+        // a plaintext / ciphertext of length 1 is of an insufficient length for cbc mode
+        $plaintext = str_repeat('a', 16);
+
+        $mcrypt = bin2hex(mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv));
+        $compat = bin2hex(phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv));
+        $this->assertEquals($mcrypt, $compat);
+
+        $ciphertext = $mcrypt;
+
+        $mcrypt = bin2hex(mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv);
+        $compat = bin2hex(phpseclib_mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv);
+        $this->assertEquals($mcrypt, $compat);
+
+        $decrypted = $mcrypt;
+        $this->assertEquals($plaintext, $decrypted);
+    }
+
     /**
      * @expectedException PHPUnit_Framework_Error_Warning
      */
@@ -81,6 +103,35 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
 
         $mcrypt = bin2hex(mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv));
         $compat = bin2hex(phpseclib_mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv));
+        $this->assertEquals($mcrypt, $compat);
+    }
+
+    /**
+     * adapted from the example at http://php.net/manual/en/filters.encryption.php
+     */
+    public function testStream()
+    {
+        $passphrase = 'My secret';
+
+        $iv = substr(md5('iv'.$passphrase, true), 0, 8);
+        $key = substr(md5('pass1'.$passphrase, true) .
+                      md5('pass2'.$passphrase, true), 0, 24);
+        $opts = array('iv'=>$iv, 'key'=>$key);
+
+        $fp = fopen('php://memory', 'wb+');
+        stream_filter_append($fp, 'mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
+        fwrite($fp, 'Secret secret secret data');
+        rewind($fp);
+        $mcrypt = bin2hex(fread($fp, 1024));
+        fclose($fp);
+
+        $fp = fopen('php://memory', 'wb+');
+        stream_filter_append($fp, 'phpseclib.mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
+        fwrite($fp, 'Secret secret secret data');
+        rewind($fp);
+        $compat = bin2hex(fread($fp, 1024));
+        fclose($fp);
+
         $this->assertEquals($mcrypt, $compat);
     }
 }

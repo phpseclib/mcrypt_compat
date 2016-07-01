@@ -828,6 +828,119 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     {
         return phpseclib_mcrypt_helper($cipher, $key, $data, $mode, $iv, 'decrypt');
     }
+
+    /**
+     * mcrypt_compat stream filter
+     *
+     * @author  Jim Wigginton <terrafrost@php.net>
+     * @access  public
+     */
+    class phpseclib_mcrypt_filter extends php_user_filter
+    {
+        /**
+         * The Cipher Object
+         *
+         * @var object
+         * @access private
+         */
+        private $cipher;
+
+        /**
+         * To encrypt or decrypt
+         *
+         * @var boolean
+         * @access private
+         */
+        private $op;
+
+        /**
+         * Called when applying the filter
+         *
+         * This method is called whenever data is read from or written to the attached stream
+         * (such as with fread() or fwrite()).
+         *
+         * @param resource $in
+         * @param resource $out
+         * @param int $consumed
+         * @param bool $closing
+         * @link http://php.net/manual/en/php-user-filter.filter.php
+         * @return int
+         * @access public
+         */
+        function filter($in, $out, &$consumed, $closing)
+        {
+            while ($bucket = stream_bucket_make_writeable($in)) {
+                $bucket->data = $this->opt ?
+                    $this->cipher->encrypt($bucket->data) :
+                    $this->cipher->decrypt($bucket->data);
+                $consumed+= $bucket->datalen;
+                stream_bucket_append($out, $bucket);
+            }
+
+            // can also return PSFS_FEED_ME and PSFS_ERR_FATAL
+            return PSFS_PASS_ON;
+        }
+
+        /**
+         * Called when creating the filter
+         *
+         * This method is called during instantiation of the filter class object.
+         * If your filter allocates or initializes any other resources (such as a buffer), 
+         * this is the place to do it.
+         *
+         * @link http://php.net/manual/en/php-user-filter.oncreate.php
+         * @return bool
+         * @access public
+         */
+        function onCreate()
+        {
+            if (!isset($this->params) || !is_array($this->params)) {
+                user_error('stream_filter_append(): Filter parameters for ' . $this->filtername . ' must be an array');
+                return false;
+            }
+            if (!isset($this->params['iv']) || !is_string($this->params['iv'])) {
+                user_error('stream_filter_append(): Filter parameter[iv] not provided or not of type: string');
+                return false;
+            }
+            if (!isset($this->params['key']) || !is_string($this->params['key'])) {
+                user_error('stream_filter_append(): key not specified or is not a string');
+                return false;
+            }
+            $filtername = substr($this->filtername, 0, 10) == 'phpseclib.' ?
+                substr($this->filtername, 10) :
+                $this->filtername;
+            $parts = explode('.', $filtername);
+            if ($parts != 2) {
+                user_error('stream_filter_append(): Could not open encryption module');
+                return false;
+            }
+            switch ($parts[0]) {
+                case 'mcrypt':
+                case 'mdecrypt':
+                    break;
+                default:
+                    user_error('stream_filter_append(): Could not open encryption module');
+                    return false;
+            }
+            $mode = isset($this->params['mode']) ? $this->params['mode'] : 'cbc';
+            $cipher = @phpseclib_mcrypt_module_open($parts[1], '', $mode, '');
+            if ($cipher === false) {
+                user_error('stream_filter_append(): Could not open encryption module');
+                return false;
+            }
+
+            $cipher->setKey($key);
+            $cipher->setIV($iv);
+
+            $this->op = $parts[0] == 'mcrypt';
+            $this->cipher = $cipher;
+
+            return true;
+        }
+    }
+
+    stream_filter_register('phpseclib.mcrypt.*', 'phpseclib_mcrypt_filter');
+    stream_filter_register('phpseclib.mdecrypt.*', 'phpseclib_mcrypt_filter');
 }
 
 // define
@@ -966,4 +1079,9 @@ if (!function_exists('mcrypt_list_algorithms')) {
     {
         return phpseclib_mcrypt_decrypt($cipher, $key, $data, $mode, $iv);
     }
+
+    //if (!in_array('mcrypt.*', stream_get_filters()) {
+    stream_filter_register('mcrypt.*', 'phpseclib_mcrypt_filter');
+    stream_filter_register('mdecrypt.*', 'phpseclib_mcrypt_filter');
+    //}
 }
