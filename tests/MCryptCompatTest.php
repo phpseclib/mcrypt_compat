@@ -19,9 +19,9 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
         // a plaintext / ciphertext of length 1 is of an insufficient length for cbc mode
         $plaintext = str_repeat('a', 16);
 
-        $mcrypt = bin2hex(mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv));
-        $compat = bin2hex(phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv));
-        $this->assertEquals($mcrypt, $compat);
+        $mcrypt = mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
+        $compat = phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
+        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
 
         $ciphertext = $mcrypt;
 
@@ -112,26 +112,59 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
     public function testStream()
     {
         $passphrase = 'My secret';
+        $plaintext = 'Secret secret secret data';
 
-        $iv = substr(md5('iv'.$passphrase, true), 0, 8);
-        $key = substr(md5('pass1'.$passphrase, true) .
-                      md5('pass2'.$passphrase, true), 0, 24);
-        $opts = array('iv'=>$iv, 'key'=>$key);
+        $iv = substr(md5('iv' . $passphrase, true), 0, 8);
+        $key = substr(md5('pass1' . $passphrase, true) .
+                      md5('pass2' . $passphrase, true), 0, 24);
+        $opts = array('iv' => $iv, 'key' => $key);
+
+        $expected = substr($plaintext . $plaintext, 0, 48);
 
         $fp = fopen('php://memory', 'wb+');
         stream_filter_append($fp, 'mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
-        fwrite($fp, 'Secret secret secret data');
+        fwrite($fp, $plaintext . $plaintext);
         rewind($fp);
-        $mcrypt = bin2hex(fread($fp, 1024));
+        $reference = bin2hex(fread($fp, 1024));
         fclose($fp);
 
         $fp = fopen('php://memory', 'wb+');
-        stream_filter_append($fp, 'phpseclib.mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
-        fwrite($fp, 'Secret secret secret data');
+        stream_filter_append($fp, 'mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
+        fwrite($fp, $plaintext);
+        fwrite($fp, $plaintext);
         rewind($fp);
-        $compat = bin2hex(fread($fp, 1024));
+        $mcrypt = bin2hex(fread($fp, 1024));
+        stream_filter_append($fp, 'mdecrypt.tripledes', STREAM_FILTER_READ, $opts);
+        rewind($fp);
+        $decrypted = fread($fp, 1024);
         fclose($fp);
 
+        // this demonstrates that streams operate in continuous mode
+        $this->assertEquals($reference, $mcrypt);
+
+        // this demonstrates how to decrypt encrypted data
+        $this->assertEquals($expected, $decrypted);
+
+        $fp = fopen('php://memory', 'wb+');
+        stream_filter_append($fp, 'phpseclib.mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
+        fwrite($fp, $plaintext);
+        fwrite($fp, $plaintext);
+        rewind($fp);
+        $compat = bin2hex(fread($fp, 1024));
+        stream_filter_append($fp, 'phpseclib.mdecrypt.tripledes', STREAM_FILTER_READ, $opts);
+        rewind($fp);
+        $decrypted = fread($fp, 1024);
+        fclose($fp);
+
+        // this demonstrates that mcrypt's stream and phpseclib's stream's have identical output
         $this->assertEquals($mcrypt, $compat);
+
+        // this demonstrates that phpseclib's stream successfully decrypts the encrypted string
+        // since both mcrypt and phpseclib successfully decrypt to the same thing the outputs can be assumed to be matching
+        $this->assertEquals($expected, $decrypted);
+
+        // in the case of cbc the length is a multiple of the block size. extra characters are added
+        // when enough are present for another block to be added
+        $this->assertNotEquals(strlen($mcrypt), strlen($plaintext) * 2);
     }
 }

@@ -854,6 +854,22 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         private $op;
 
         /**
+         * Buffer for ECB / CBC
+         *
+         * @var string
+         * @access private
+         */
+        private $buffer = '';
+
+        /**
+         * Cipher block length
+         *
+         * @var int
+         * @access private
+         */
+        private $block_length = '';
+
+        /**
          * Called when applying the filter
          *
          * This method is called whenever data is read from or written to the attached stream
@@ -869,16 +885,28 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
          */
         function filter($in, $out, &$consumed, $closing)
         {
+            $newlen = 0;
+            $block_mode = $this->cipher->mode == Base::MODE_CBC || $this->cipher->mode == Base::MODE_ECB;
             while ($bucket = stream_bucket_make_writeable($in)) {
-                $bucket->data = $this->opt ?
+                if ($block_mode) {
+                    $bucket->data = $this->buffer . $bucket->data;
+                    $extra = strlen($bucket->data) % $this->block_length;
+                    if ($extra) {
+                        $this->buffer = substr($bucket->data, -$extra);
+                        $bucket->data = substr($bucket->data, 0, -$extra);
+                    }
+                }
+
+                $bucket->data = $this->op ?
                     $this->cipher->encrypt($bucket->data) :
                     $this->cipher->decrypt($bucket->data);
+                $newlen+= strlen($bucket->data);
                 $consumed+= $bucket->datalen;
+
                 stream_bucket_append($out, $bucket);
             }
 
-            // can also return PSFS_FEED_ME and PSFS_ERR_FATAL
-            return PSFS_PASS_ON;
+            return $block_mode && $newlen < $this->block_length ? PSFS_FEED_ME : PSFS_PASS_ON;
         }
 
         /**
@@ -910,7 +938,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 substr($this->filtername, 10) :
                 $this->filtername;
             $parts = explode('.', $filtername);
-            if ($parts != 2) {
+            if (count($parts) != 2) {
                 user_error('stream_filter_append(): Could not open encryption module');
                 return false;
             }
@@ -929,11 +957,13 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 return false;
             }
 
-            $cipher->setKey($key);
-            $cipher->setIV($iv);
+            $cipher->enableContinuousBuffer();
+            $cipher->setKey($this->params['key']);
+            $cipher->setIV($this->params['iv']);
 
             $this->op = $parts[0] == 'mcrypt';
             $this->cipher = $cipher;
+            $this->block_length = phpseclib_mcrypt_enc_get_iv_size($cipher);
 
             return true;
         }
