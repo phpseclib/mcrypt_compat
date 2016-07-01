@@ -70,4 +70,21 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
         list($v1, $v2) = $this->ncfbHelper('phpseclib_');
         $this->assertSame($v1, $v2);
     }
+
+    /**
+     * mcrypt and phpseclib 1.0/2.0 null-pad plaintext's and ciphertext's
+     */
+    public function testNullPadding()
+    {
+        $key = str_repeat('z', 16);
+        $iv = str_repeat('z', 16);
+        // a plaintext of length 1 is of an insufficient length for cbc mode
+        $mcrypt = bin2hex(mcrypt_encrypt('rijndael-128', $key, 'a', 'cbc', $iv));
+        $compat = bin2hex(phpseclib_mcrypt_encrypt('rijndael-128', $key, 'a', 'cbc', $iv));
+        $this->assertEquals($mcrypt, $compat);
+
+        $mcrypt = bin2hex(mcrypt_decrypt('rijndael-128', $key, 'a', 'cbc', $iv));
+        $compat = bin2hex(phpseclib_mcrypt_decrypt('rijndael-128', $key, 'a', 'cbc', $iv));
+        $this->assertEquals($mcrypt, $compat);
+    }
 }
