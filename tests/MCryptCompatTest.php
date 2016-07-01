@@ -5,13 +5,6 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
     {
         $this->assertInternalType('array', phpseclib_mcrypt_list_algorithms());
     }
-    
-    public function testAESBasicSuccess()
-    {
-        $mcrypt = bin2hex(mcrypt_encrypt('rijndael-128', str_repeat('a', 16), 'asdf', 'cbc', str_repeat('a', 16)));
-        $compat = bin2hex(phpseclib_mcrypt_encrypt('rijndael-128', str_repeat('a', 16), 'asdf', 'cbc', str_repeat('a', 16)));
-        $this->assertEquals($mcrypt, $compat);
-    }
 
     public function testListAlgorithms()
     {
@@ -78,13 +71,16 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
     {
         $key = str_repeat('z', 16);
         $iv = str_repeat('z', 16);
-        // a plaintext of length 1 is of an insufficient length for cbc mode
-        $mcrypt = bin2hex(mcrypt_encrypt('rijndael-128', $key, 'a', 'cbc', $iv));
-        $compat = bin2hex(phpseclib_mcrypt_encrypt('rijndael-128', $key, 'a', 'cbc', $iv));
+
+        // a plaintext / ciphertext of length 1 is of an insufficient length for cbc mode
+        $plaintext = $ciphertext = 'a';
+
+        $mcrypt = bin2hex(mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv));
+        $compat = bin2hex(phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv));
         $this->assertEquals($mcrypt, $compat);
 
-        $mcrypt = bin2hex(mcrypt_decrypt('rijndael-128', $key, 'a', 'cbc', $iv));
-        $compat = bin2hex(phpseclib_mcrypt_decrypt('rijndael-128', $key, 'a', 'cbc', $iv));
+        $mcrypt = bin2hex(mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv));
+        $compat = bin2hex(phpseclib_mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv));
         $this->assertEquals($mcrypt, $compat);
     }
 }
