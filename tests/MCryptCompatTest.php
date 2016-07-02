@@ -33,6 +33,19 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($plaintext, $decrypted);
     }
 
+    public function testAESDiffKeyLength()
+    {
+        $key = str_repeat('z', 24);
+        $iv = str_repeat('z', 16);
+
+        // a plaintext / ciphertext of length 1 is of an insufficient length for cbc mode
+        $plaintext = str_repeat('a', 16);
+
+        $mcrypt = mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
+        $compat = phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
+        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+    }
+
     /**
      * @expectedException PHPUnit_Framework_Error_Warning
      */
@@ -104,6 +117,59 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
         $mcrypt = bin2hex(mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv));
         $compat = bin2hex(phpseclib_mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv));
         $this->assertEquals($mcrypt, $compat);
+    }
+
+    /**
+     * valid AES key lengths are 128, 192 and 256-bit. if you pass in, say, a 160-bit key (20 bytes)
+     * both phpseclib 1.0/2.0 and mcrypt will null pad 192-bits. at least with mcrypt_generic().
+     */
+    public function testMiddleKey()
+    {
+        $key = str_repeat('z', 20);
+        $iv = str_repeat('z', 16);
+
+        $plaintext = 'a';
+
+        $td = mcrypt_module_open('rijndael-128', '', 'cbc', '');
+        mcrypt_generic_init($td, $key, $iv);
+        $mcrypt = bin2hex(mcrypt_generic($td, 'This is very important data'));
+
+        $td = phpseclib_mcrypt_module_open('rijndael-128', '', 'cbc', '');
+        phpseclib_mcrypt_generic_init($td, $key, $iv);
+        $phpseclib = bin2hex(phpseclib_mcrypt_generic($td, 'This is very important data'));
+
+        $this->assertEquals($mcrypt, $phpseclib);
+    }
+
+    /**
+     * although mcrypt_generic() null pads keys mcrypt_encrypt() does not
+     *
+     * @requires PHP 5.6
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMiddleKey2()
+    {
+        $key = str_repeat('z', 20);
+        $iv = str_repeat('z', 16);
+
+        $plaintext = 'a';
+
+        mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
+    }
+
+    /**
+     * phpseclib_mcrypt_generic() behaves in the same way
+     *
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMiddleKey3()
+    {
+        $key = str_repeat('z', 20);
+        $iv = str_repeat('z', 16);
+
+        $plaintext = 'a';
+
+        phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
     }
 
     /**

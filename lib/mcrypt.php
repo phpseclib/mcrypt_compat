@@ -109,6 +109,55 @@ if (!defined('MCRYPT_MODE_ECB')) {
 
 if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     /**
+     * mcrypt-compatible Rijndael wrapper
+     *
+     * With mcrypt you have algorithms like rijndael-128, rijndael-192 and rijndael-256.
+     * The numbers at the end refer to the block size. In Rijndael you can have a variable block size.
+     * In AES you cannot. So, technically, rijndael-128 is AES, the rest are not.
+     * Now, in both AES and Rijndael, you can have a variable key size. Rijndael supports
+     * 128, 160, 192, 224 and 256 bit keys but mcrypt only supports 128, 192 and 256 bit keys.
+     * Those are the same key sizes that AES supports but AES doesn't support variable block sizes so
+     * we need a wrapper that restricts the key lengths as AES restricts them but doesn't restrict
+     * the block size as AES restricts it.
+     *
+     * @package mcrypt_compat
+     * @author  Jim Wigginton <terrafrost@php.net>
+     * @access  public
+     */
+    class phpseclib_mcrypt_rijndael extends Rijndael
+    {
+        /**
+         * Sets the key.
+         *
+         * Rijndael supports five different key lengths, AES only supports three.
+         *
+         * @see Crypt_Rijndael:setKey()
+         * @see setKeyLength()
+         * @access public
+         * @param string $key
+         */
+        function setKey($key)
+        {
+            parent::setKey($key);
+
+            if (!$this->explicit_key_length) {
+                $length = strlen($key);
+                switch (true) {
+                    case $length <= 16:
+                        $this->key_length = 16;
+                        break;
+                    case $length <= 24:
+                        $this->key_length = 24;
+                        break;
+                    default:
+                        $this->key_length = 32;
+                }
+                $this->_setEngine();
+            }
+        }
+    }
+
+    /**
      * Gets an array of all supported ciphers.
      *
      * @param string $lib_dir optional
@@ -206,14 +255,14 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         }
         switch ($algorithm) {
             case 'rijndael-128':
-                $cipher = new Rijndael($modeMap[$mode]);
+                $cipher = new phpseclib_mcrypt_rijndael($modeMap[$mode]);
                 $cipher->setBlockLength(128);
                 break;
             case 'twofish':
                 $cipher = new Twofish($modeMap[$mode]);
                 break;
             case 'rijndael-192':
-                $cipher = new Rijndael($modeMap[$mode]);
+                $cipher = new phpseclib_mcrypt_rijndael($modeMap[$mode]);
                 $cipher->setBlockLength(192);
                 break;
             case 'blowfish-compat':
@@ -223,7 +272,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 $cipher = new DES($modeMap[$mode]);
                 break;
             case 'rijndael-256':
-                $cipher = new Rijndael($modeMap[$mode]);
+                $cipher = new phpseclib_mcrypt_rijndael($modeMap[$mode]);
                 $cipher->setBlockLength(256);
                 break;
             case 'blowfish':
