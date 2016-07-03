@@ -4,6 +4,14 @@
 
 PHP 5.x polyfill for mcrypt extension.
 
+## Installation
+
+With [Composer](https://getcomposer.org/):
+
+```
+composer require phpseclib/mcrypt_compat
+```
+
 ## Supported algorithms
 
 - rijndael-128
