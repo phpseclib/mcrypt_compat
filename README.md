@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/phpseclib/mcrypt_compat.svg?branch=master)](https://travis-ci.org/phpseclib/mcrypt_compat)
 
-PHP 5.x polyfill for mcrypt extension.
+PHP 5.x/7.x polyfill for mcrypt extension.
 
 ## Installation
 
