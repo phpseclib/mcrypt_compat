@@ -253,4 +253,29 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
     }
 
     // i'd have a testRC4Stream method were it not for https://bugs.php.net/72535
+
+    public function testShortKeyIVStream()
+    {
+        $plaintext = 'Secret secret secret data';
+
+        $iv = 'z';
+        $key = 'z';
+        $opts = array('iv' => $iv, 'key' => $key);
+
+        $fp = fopen('php://memory', 'wb+');
+        stream_filter_append($fp, 'mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
+        fwrite($fp, $plaintext);
+        rewind($fp);
+        $mcrypt = bin2hex(fread($fp, 1024));
+        fclose($fp);
+
+        $fp = fopen('php://memory', 'wb+');
+        stream_filter_append($fp, 'phpseclib.mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
+        fwrite($fp, $plaintext);
+        rewind($fp);
+        $compat = bin2hex(fread($fp, 1024));
+        fclose($fp);
+
+        $this->assertEquals($mcrypt, $compat);
+    }
 }
