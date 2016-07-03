@@ -172,6 +172,24 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
         phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
     }
 
+    public function testShortKey()
+    {
+        $key = str_repeat('z', 4);
+        $iv = str_repeat('z', 16);
+
+        $plaintext = 'a';
+
+        $td = mcrypt_module_open('rijndael-128', '', 'cbc', '');
+        mcrypt_generic_init($td, $key, $iv);
+        $mcrypt = bin2hex(mcrypt_generic($td, 'This is very important data'));
+
+        $td = phpseclib_mcrypt_module_open('rijndael-128', '', 'cbc', '');
+        phpseclib_mcrypt_generic_init($td, $key, $iv);
+        $phpseclib = bin2hex(phpseclib_mcrypt_generic($td, 'This is very important data'));
+
+        $this->assertEquals($mcrypt, $phpseclib);
+    }
+
     /**
      * adapted from the example at http://php.net/manual/en/filters.encryption.php
      */
@@ -233,4 +251,6 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
         // when enough are present for another block to be added
         $this->assertNotEquals(strlen($mcrypt), strlen($plaintext) * 2);
     }
+
+    // i'd have a testRC4Stream method were it not for https://bugs.php.net/72535
 }
