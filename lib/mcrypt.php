@@ -313,7 +313,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
 
         $backup = clone $td;
         $backup->setKeyLength(9999);
-        return $backup->getKeyLength();
+        return $backup->getKeyLength() >> 3;
     }
 
     /**
@@ -515,7 +515,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             trigger_error('mcrypt_generic_init(): Key size is 0', E_USER_WARNING);
             return -3;
         }
-        $max_key_size = phpseclib_mcrypt_enc_get_key_size($td) >> 3;
+        $max_key_size = phpseclib_mcrypt_enc_get_key_size($td);
         if (strlen($key) > $max_key_size) {
             trigger_error('mcrypt_generic_init(): Key size too large; supplied length: ' . strlen($key) . ', max: ' . $max_key_size, E_USER_WARNING);
         }
