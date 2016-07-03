@@ -265,9 +265,6 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 $cipher = new phpseclib_mcrypt_rijndael($modeMap[$mode]);
                 $cipher->setBlockLength(192);
                 break;
-            case 'blowfish-compat':
-                $cipher = new Blowfish($modeMap[$mode]);
-                break;
             case 'des':
                 $cipher = new DES($modeMap[$mode]);
                 break;

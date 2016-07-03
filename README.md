@@ -17,7 +17,6 @@ composer require phpseclib/mcrypt_compat
 - rijndael-128
 - rijndael-192
 - rijndael-256
-- blowfish-compat
 - des
 - blowfish
 - rc2
@@ -32,6 +31,7 @@ composer require phpseclib/mcrypt_compat
 - loki97
 - saferplus
 - wake
+- blowfish-compat
 - serpent
 - xtea
 - enigma
