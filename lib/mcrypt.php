@@ -30,8 +30,6 @@
  * @link      http://phpseclib.sourceforge.net
  */
 
-require __DIR__ . '/../vendor/autoload.php';
-
 use phpseclib\Crypt\Rijndael;
 use phpseclib\Crypt\Twofish;
 use phpseclib\Crypt\Blowfish;
