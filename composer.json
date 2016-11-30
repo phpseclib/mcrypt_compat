@@ -32,5 +32,8 @@
     },
     "autoload": {
         "files": ["lib/mcrypt.php"]
+    },
+    "provide": {
+      "ext-mcrypt": "*"
     }
 }
