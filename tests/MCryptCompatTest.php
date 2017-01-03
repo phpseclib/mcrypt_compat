@@ -1,5 +1,6 @@
 <?php
-class MCryptCompatTest extends PHPUnit_Framework_TestCase
+
+class MCryptCompatTest extends \PHPUnit_Framework_TestCase
 {
     public function testAlgorithmList()
     {
@@ -9,6 +10,343 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
     public function testListAlgorithms()
     {
         $this->assertInternalType('array', phpseclib_mcrypt_list_algorithms());
+    }
+
+    public function testListsModes()
+    {
+        $this->assertInternalType('array', phpseclib_mcrypt_list_modes());
+    }
+
+    public function testMcryptCreateIv()
+    {
+        $expectedLen = 20;
+        $result = phpseclib_mcrypt_create_iv($expectedLen);
+        $this->assertInternalType('string', $result);
+        $this->assertEquals($expectedLen, strlen($result));
+    }
+    
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptCreateIvException()
+    {
+        $result = phpseclib_mcrypt_create_iv(0);
+    }
+
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptModuleOpenWithErrorModeException()
+    {
+        $result = phpseclib_mcrypt_module_open('arcfour', '', 'cbc', '');
+    }
+    
+    /**
+     * @dataProvider mcryptModuleNameProvider
+     */
+    public function testMcryptModuleOpen($moduleName, $cipherMode, $expectedInstance)
+    {
+        $resultInstance = phpseclib_mcrypt_module_open($moduleName, '', $cipherMode, '');
+        $this->assertInstanceOf($expectedInstance, $resultInstance);
+    }
+
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptModuleOpenException()
+    {
+        $result = phpseclib_mcrypt_module_open('unknown-module-name', '', 'cbc', '');
+    }
+
+    public function testMcryptModuleGetAlgoBlockSizeWithNumber()
+    {
+        $result = phpseclib_mcrypt_module_get_algo_block_size('arcfour');
+        $this->assertEquals(-1, $result);
+    }
+
+    public function testMcryptEncGetBlockSize()
+    {
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        $expectedBlockLen = $td->getBlockLength() >> 3;
+        $result = phpseclib_mcrypt_enc_get_block_size($td);
+        $this->assertEquals($expectedBlockLen, $result);
+    }
+
+    /**
+     * @dataProvider mcryptEncGetAlgorithmsNameProvider
+     */
+    public function testMcryptEncGetAlgorithmsName($moduleName, $cipherMode, $expectedContainStr)
+    {
+        $td = phpseclib_mcrypt_module_open($moduleName, '', $cipherMode, '');
+        $result = phpseclib_mcrypt_enc_get_algorithms_name($td);
+        $this->assertContains($expectedContainStr, $result);
+    }
+
+    public function testMcryptEncGetModesName()
+    {
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        $result = phpseclib_mcrypt_enc_get_modes_name($td);
+        $this->assertEquals('CBC', $result);
+    }
+
+    public function testMcryptEncIsBlockAlgorithmMode()
+    {
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        $result = phpseclib_mcrypt_enc_is_block_algorithm_mode($td);
+        $this->assertTrue($result);
+        
+        $td = phpseclib_mcrypt_module_open('arcfour', '', 'stream', '');
+        $result = phpseclib_mcrypt_enc_is_block_algorithm_mode($td);
+        $this->assertFalse($result);
+    }
+    
+    public function testMcryptEncIsBlockAlgorithm()
+    {
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        $result = phpseclib_mcrypt_enc_is_block_algorithm($td);
+        $this->assertTrue($result);
+        
+        $td = phpseclib_mcrypt_module_open('arcfour', '', 'stream', '');
+        $result = phpseclib_mcrypt_enc_is_block_algorithm($td);
+        $this->assertFalse($result);
+    }
+
+    public function testMcryptEncIsBlockMode()
+    {
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        $result = phpseclib_mcrypt_enc_is_block_mode($td);
+        $this->assertTrue($result);
+        
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'ecb', '');
+        $result = phpseclib_mcrypt_enc_is_block_mode($td);
+        $this->assertTrue($result);
+        
+        $td = phpseclib_mcrypt_module_open('arcfour', '', 'stream', '');
+        $result = phpseclib_mcrypt_enc_is_block_mode($td);
+        $this->assertFalse($result);
+    }
+
+    public function testMcryptEncSelfTest()
+    {
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        $result = phpseclib_mcrypt_enc_self_test($td);
+        $this->assertTrue($result);
+    }
+
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptGenericInitWithErrorIvSize()
+    {
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        $result = phpseclib_mcrypt_generic_init($td, 'key', 1);
+    }
+    
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptGenericInitWithErrorNullKeySize()
+    {
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        $ivSize = phpseclib_mcrypt_enc_get_iv_size($td);
+        $ivStr = str_repeat('=', $ivSize);
+        $result = phpseclib_mcrypt_generic_init($td, null, $ivStr);
+    }
+    
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptGenericInitWithErrorMaxKeySize()
+    {
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        $ivSize = phpseclib_mcrypt_enc_get_iv_size($td);
+        $ivStr = str_repeat('=', $ivSize);
+        $maxKeySize = phpseclib_mcrypt_enc_get_key_size($td);
+        $maxKeySize += 1;
+        $bigKeyStr = str_repeat('=', $maxKeySize);
+        $result = phpseclib_mcrypt_generic_init($td, $bigKeyStr, $ivStr);
+    }
+
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptGenericHelperWithException()
+    {
+        $data = 'data';
+        $op = 'operation';
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        unset($td->mcrypt_polyfill_init);
+        $result = phpseclib_mcrypt_generic_helper($td, $data, $op);
+    }
+
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptGenericDeinitWithException()
+    {
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        unset($td->mcrypt_polyfill_init);
+        $result = phpseclib_mcrypt_generic_deinit($td);
+    }
+
+    public function testMcryptModuleClose()
+    {
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        $result = phpseclib_mcrypt_module_close($td);
+        $this->assertTrue($result);
+    }
+
+    public function testMcryptModuleGetSupportedKeySizesWithDESAnd3DES()
+    {
+        $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
+        $result = phpseclib_mcrypt_module_get_supported_key_sizes('des');
+        $this->assertContains(8, $result);
+
+        $result = phpseclib_mcrypt_module_get_supported_key_sizes('tripledes');
+        $this->assertContains(24, $result);
+    }
+
+    public function testMcryptEncGetSupportedKeySizes()
+    {
+        $td = phpseclib_mcrypt_module_open('des', '', 'cbc', '');
+        $result = phpseclib_mcrypt_enc_get_supported_key_sizes($td);
+        $this->assertContains(8, $result);
+    }
+
+    /**
+     * @dataProvider mcryptBlockModuleNameProvider
+     */
+    public function testMcryptModuleIsBlockAlgorithmMode($modeName, $expectedValue)
+    {
+        $result = phpseclib_mcrypt_module_is_block_algorithm_mode($modeName);
+        $this->assertEquals($result, $expectedValue);
+    }
+
+    /**
+     * @dataProvider mcryptBlockModuleAlgoNameProvider
+     */
+    public function testphpseclib_mcrypt_module_is_block_algorithm($algoName, $expectedValue)
+    {
+        $result = phpseclib_mcrypt_module_is_block_algorithm($algoName);
+        $this->assertEquals($result, $expectedValue);
+    }
+
+    /**
+     * @dataProvider mcryptModuleIsBlockModeProvider
+     */
+    public function testMcryptModuleIsBlockMode($modeName, $expectedValue)
+    {
+        $result = phpseclib_mcrypt_module_is_block_mode($modeName, $expectedValue);
+        $this->assertEquals($result, $expectedValue);
+    }
+
+    public function testMcryptModuleSelfTest()
+    {
+        $result = phpseclib_mcrypt_module_self_test('blowfish');
+        $this->assertTrue($result);
+
+        $result = phpseclib_mcrypt_module_self_test('invalid-algorithm-name');
+        $this->assertFalse($result);
+    }
+
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptHelperWithInitialModuleException()
+    {
+        $result = phpseclib_mcrypt_helper('invalid-module', 'key', 'data', 'cbc', 'iv-str', 'operation');
+    }
+    
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptHelperWithKeySizeNotSupportedException()
+    {
+        $key = str_repeat('===', 50);
+        $result = phpseclib_mcrypt_helper('blowfish', $key, '', 'cbc', '', '');
+    }
+    
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptHelperWithInitialIvSizeException()
+    {
+        $result = phpseclib_mcrypt_helper('blowfish', '', '', 'cbc', null, '');
+    }
+
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptHelperWithReceiveInitialIvSizeException()
+    {
+        $result = phpseclib_mcrypt_helper('blowfish', 10, '', 'cbc', 'iv-str', '');
+    }
+
+    /**
+     * @expectedException PHPUnit_Framework_Error_Notice
+     */
+    public function testMcryptFilterWithOnCreateStreamParamsMustBeArray()
+    {
+        $filter = new phpseclib_mcrypt_filter();
+        $filter->onCreate();
+    }
+    
+    /**
+     * @expectedException PHPUnit_Framework_Error_Notice
+     */
+    public function testMcryptFilterWithOnCreateStreamParamsNotProvidedOrString()
+    {
+        $params = array('fake-key' => 'fake-value');
+        $filter = new phpseclib_mcrypt_filter();
+        $filter->params = $params;
+        $filter->onCreate();
+    }
+    
+    /**
+     * @expectedException PHPUnit_Framework_Error_Notice
+     */
+    public function testMcryptFilterWithOnCreateStreamParamsNotKeyOrString()
+    {
+        $params = array('iv' => 'fake-iv-str');
+        $filter = new phpseclib_mcrypt_filter();
+        $filter->params = $params;
+        $filter->onCreate();
+    }
+    
+    /**
+     * @expectedException PHPUnit_Framework_Error_Notice
+     */
+    public function testMcryptFilterWithOnCreateErrorOpenEncryptionModule()
+    {
+        $params = array('iv' => 'fake-iv-str', 'key' => 'fake-key');
+        $filter = new phpseclib_mcrypt_filter();
+        $filter->filtername = 'fake.filter.name';
+        $filter->params = $params;
+        $filter->onCreate();
+    }
+    
+    /**
+     * @expectedException PHPUnit_Framework_Error_Notice
+     */
+    public function testMcryptFilterWithOnCreateErrorCryptname()
+    {
+        $params = array('iv' => 'fake-iv-str', 'key' => 'fake-key');
+        $filter = new phpseclib_mcrypt_filter();
+        $filter->filtername = 'fake_crypt.fake_cipher';
+        $filter->params = $params;
+        $filter->onCreate();
+    }
+    
+    /**
+     * @expectedException PHPUnit_Framework_Error_Notice
+     */
+    public function testMcryptFilterWithOnCreateErrorCipherName()
+    {
+        $params = array('iv' => 'fake-iv-str', 'key' => 'fake-key');
+        $filter = new phpseclib_mcrypt_filter();
+        $filter->filtername = 'mcrypt.fake_cipher';
+        $filter->params = $params;
+        $filter->onCreate();
     }
 
     public function testAESBasicSuccess()
@@ -289,5 +627,70 @@ class MCryptCompatTest extends PHPUnit_Framework_TestCase
         $mcrypt = mcrypt_encrypt('blowfish', $key, $plaintext, 'cbc', $iv);
         $compat = phpseclib_mcrypt_encrypt('blowfish', $key, $plaintext, 'cbc', $iv);
         $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+    }
+
+    public function mcryptModuleNameProvider()
+    {
+        return array(
+            array('twofish', 'cbc', '\phpseclib\Crypt\Twofish'),
+            array('rijndael-128', 'cbc', 'phpseclib_mcrypt_rijndael'),
+            array('rijndael-192', 'cbc', 'phpseclib_mcrypt_rijndael'),
+            array('des', 'cbc', '\phpseclib\Crypt\DES'),
+            array('rijndael-256', 'cbc', 'phpseclib_mcrypt_rijndael'),
+            array('blowfish', 'cbc', '\phpseclib\Crypt\Blowfish'),
+            array('rc2', 'cbc', '\phpseclib\Crypt\RC2'),
+            array('tripledes', 'cbc', '\phpseclib\Crypt\TripleDES'),
+            array('arcfour', 'stream', '\phpseclib\Crypt\RC4')
+        );
+    }
+
+    public function mcryptEncGetAlgorithmsNameProvider()
+    {
+        return array(
+            array('twofish', 'cbc', 'TWOFISH'),
+            array('rijndael-256', 'cbc', 'RIJNDAEL-'),
+            array('des', 'cbc', 'DES'),
+            array('blowfish', 'cbc', 'BLOWFISH'),
+            array('rc2', 'cbc', 'RC2'),
+            array('tripledes', 'cbc', 'TRIPLEDES'),
+            array('arcfour', 'stream', 'ARCFOUR')
+        );
+    }
+
+    public function mcryptBlockModuleNameProvider()
+    {
+        return array(
+            array('cbc', true),
+            array('ctr', true),
+            array('ecb', true),
+            array('ncfb', true),
+            array('nofb', true),
+            array('invalid-mode', false)
+        );
+    }
+
+    public function mcryptBlockModuleAlgoNameProvider()
+    {
+        return array(
+            array('rijndael-128', true),
+            array('twofish', true),
+            array('rijndael-192', true),
+            array('blowfish-compat', true),
+            array('des', true),
+            array('rijndael-256', true),
+            array('blowfish', true),
+            array('rc2', true),
+            array('tripledes', true),
+            array('invalid-algorithm-name', false)
+        );
+    }
+
+    public function mcryptModuleIsBlockModeProvider()
+    {
+        return array(
+            array('cbc', true),
+            array('ecb', true),
+            array('invalid-mode-name', false)
+        );
     }
 }
