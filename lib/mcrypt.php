@@ -1146,7 +1146,7 @@ if (!function_exists('mcrypt_list_algorithms')) {
 
     function mcrypt_module_self_test($algorithm, $lib_dir = '')
     {
-        return mcrypt_module_self_test($algorithm, $lib_dir);
+        return phpseclib_mcrypt_module_self_test($algorithm, $lib_dir);
     }
 
     function mcrypt_decrypt($cipher, $key, $data, $mode, $iv = null)
