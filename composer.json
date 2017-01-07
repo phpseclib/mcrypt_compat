@@ -21,7 +21,7 @@
         "source":   "https://github.com/phpseclib/mcrypt_compat"
     },
     "require": {
-        "php": ">=5.3.0",
+        "php": ">=5.3.3",
         "phpseclib/phpseclib": "~2.0"
     },
     "require-dev": {
