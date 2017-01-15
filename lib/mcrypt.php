@@ -1,4 +1,5 @@
 <?php
+
 /**
  * mcrypt polyfill
  *
@@ -311,6 +312,99 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         return $backup->getKeyLength() >> 3;
     }
 
+   /**
+     * Gets the name of the specified cipher
+     *
+     * @param string $cipher
+     * @return mixed
+     * @access public
+     */
+    function phpseclib_mcrypt_get_cipher_name($cipher)
+    {
+        switch ($cipher) {
+            case 'rijndael-128':
+                return 'Rijndael-128';
+            case 'twofish':
+                return 'Twofish';
+            case 'rijndael-192':
+                return 'Rijndael-192';
+            case 'des':
+                return 'DES';
+            case 'rijndael-256':
+                return 'Rijndael-256';
+            case 'blowfish':
+                return 'Blowfish';
+            case 'rc2':
+                return 'RC2';
+            case 'tripledes':
+                return '3DES';
+            case 'arcfour':
+                return 'RC4';
+            default:
+                return false;
+        }
+    }
+
+   /**
+     * Gets the block size of the specified cipher
+     *
+     * @param string $cipher
+     * @param string $mode optional
+     * @return int
+     * @access public
+     */
+    function phpseclib_mcrypt_get_block_size($cipher, $mode = false)
+    {
+        if (!$mode) {
+            $mode = $cipher == 'rc4' ? 'stream' : 'cbc';
+        }
+        $td = @phpseclib_mcrypt_module_open($cipher, '', $mode, '');
+        if ($td === false) {
+            trigger_error('mcrypt_get_block_size(): Module initialization failed', E_USER_WARNING);
+            return false;
+        }
+        return phpseclib_mcrypt_enc_get_block_size($td);
+    }
+
+   /**
+     * Gets the key size of the specified cipher
+     *
+     * @param string $cipher
+     * @param string $mode optional
+     * @return int
+     * @access public
+     */
+    function phpseclib_mcrypt_get_key_size($cipher, $mode = false)
+    {
+        if (!$mode) {
+            $mode = $cipher == 'rc4' ? 'stream' : 'cbc';
+        }
+        $td = @phpseclib_mcrypt_module_open($cipher, '', $mode, '');
+        if ($td === false) {
+            trigger_error('mcrypt_get_key_size(): Module initialization failed', E_USER_WARNING);
+            return false;
+        }
+        return phpseclib_mcrypt_enc_get_key_size($td);
+    }
+
+   /**
+     * Returns the size of the IV belonging to a specific cipher/mode combination
+     *
+     * @param string $cipher
+     * @param string $mode
+     * @return int
+     * @access public
+     */
+    function phpseclib_mcrypt_get_iv_size($cipher, $mode)
+    {
+        $td = @phpseclib_mcrypt_module_open($cipher, '', $mode, '');
+        if ($td === false) {
+            trigger_error('mcrypt_get_iv_size(): Module initialization failed', E_USER_WARNING);
+            return false;
+        }
+        return phpseclib_mcrypt_enc_get_iv_size($td);
+    }
+
     /**
      * Returns the maximum supported keysize of the opened mode
      *
@@ -325,6 +419,10 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     {
         $mode = $algorithm == 'rc4' ? 'stream' : 'cbc';
         $td = @phpseclib_mcrypt_module_open($algorithm, '', $mode, '');
+        if ($td === false) {
+            trigger_error('mcrypt_module_get_algo_key_size(): Module initialization failed', E_USER_WARNING);
+            return false;
+        }
         return phpseclib_mcrypt_enc_get_key_size($td);
     }
 
@@ -669,7 +767,6 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 return array(24);
             //case 'arcfour':
             //case 'blowfish':
-            //case 'blowfish-compat':
             //case 'rc2':
             default:
                 return array();
@@ -730,7 +827,6 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             case 'rijndael-128':
             case 'twofish':
             case 'rijndael-192':
-            case 'blowfish-compat':
             case 'des':
             case 'rijndael-256':
             case 'blowfish':
@@ -1117,6 +1213,26 @@ if (!function_exists('mcrypt_list_algorithms')) {
     function mcrypt_module_get_algo_block_size($algorithm, $lib_dir = '')
     {
         return phpseclib_mcrypt_module_get_algo_block_size($algorithm, $lib_dir);
+    }
+
+    function mcrypt_get_block_size($cipher, $mode = '')
+    {
+        return phpseclib_mcrypt_get_block_size($cipher, $mode);
+    }
+
+    function mcrypt_get_cipher_name($cipher)
+    {
+        return phpseclib_mcrypt_get_cipher_name($cipher);
+    }
+
+    function mcrypt_get_key_size($cipher, $mode = false)
+    {
+        return phpseclib_mcrypt_get_key_size($cipher, $mode);
+    }
+
+    function mcrypt_get_iv_size($cipher, $mode)
+    {
+        return phpseclib_mcrypt_get_iv_size($cipher, $mode);
     }
 
     function mcrypt_module_get_algo_key_size($algorithm, $lib_dir = '')

@@ -73,6 +73,70 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptGetAlgoKeySizeBad()
+    {
+        phpseclib_mcrypt_module_get_algo_key_size('zzz');
+    }
+
+    public function testMcryptGetAlgoKeySizeGood()
+    {
+        $this->assertEquals(
+            mcrypt_module_get_algo_key_size('rijndael-128'),
+            phpseclib_mcrypt_module_get_algo_key_size('rijndael-128')
+        );
+    }
+
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptGetIVSizeBad()
+    {
+        phpseclib_mcrypt_get_iv_size('zzz', 'cbc');
+    }
+
+    public function testMcryptGetIVSizeGood()
+    {
+        $this->assertEquals(
+            mcrypt_get_iv_size('rijndael-128', 'cbc'),
+            phpseclib_mcrypt_get_iv_size('rijndael-128', 'cbc')
+        );
+    }
+
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptGetKeySizeBad()
+    {
+        phpseclib_mcrypt_get_key_size('zzz', 'cbc');
+    }
+
+    public function testMcryptGetKeySizeGood()
+    {
+        $this->assertEquals(
+            mcrypt_get_key_size('rijndael-128', 'cbc'),
+            phpseclib_mcrypt_get_key_size('rijndael-128', 'cbc')
+        );
+    }
+
+    /**
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptGetBlockSizeBad()
+    {
+        phpseclib_mcrypt_get_block_size('zzz', 'cbc');
+    }
+
+    public function testMcryptGetBlockSizeGood()
+    {
+        $this->assertEquals(
+            mcrypt_get_block_size('rijndael-128', 'cbc'),
+            phpseclib_mcrypt_get_block_size('rijndael-128', 'cbc')
+        );
+    }
+
+    /**
      * @dataProvider mcryptEncGetAlgorithmsNameProvider
      */
     public function testMcryptEncGetAlgorithmsName($moduleName, $cipherMode, $expectedContainStr)
@@ -675,7 +739,6 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
             array('rijndael-128', true),
             array('twofish', true),
             array('rijndael-192', true),
-            array('blowfish-compat', true),
             array('des', true),
             array('rijndael-256', true),
             array('blowfish', true),
