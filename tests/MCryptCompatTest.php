@@ -693,6 +693,30 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
     }
 
+    public function testBlowfishShortKey()
+    {
+        $key = 'a';
+        $iv = str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('blowfish'));
+
+        $plaintext = str_repeat('a', 100);
+
+        $mcrypt = mcrypt_encrypt('blowfish', $key, $plaintext, 'cbc', $iv);
+        $compat = phpseclib_mcrypt_encrypt('blowfish', $key, $plaintext, 'cbc', $iv);
+        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+    }
+
+    public function testRC2ShortKey()
+    {
+        $key = 'a';
+        $iv = str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('rc2'));
+
+        $plaintext = str_repeat('a', 100);
+
+        $mcrypt = mcrypt_encrypt('rc2', $key, $plaintext, 'cbc', $iv);
+        $compat = phpseclib_mcrypt_encrypt('rc2', $key, $plaintext, 'cbc', $iv);
+        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+    }
+
     public function mcryptModuleNameProvider()
     {
         return array(
