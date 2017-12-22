@@ -108,52 +108,81 @@ if (!defined('MCRYPT_MODE_ECB')) {
 
 if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     /**
-     * mcrypt-compatible Rijndael wrapper
+     * Sets the key
      *
-     * With mcrypt you have algorithms like rijndael-128, rijndael-192 and rijndael-256.
-     * The numbers at the end refer to the block size. In Rijndael you can have a variable block size.
-     * In AES you cannot. So, technically, rijndael-128 is AES, the rest are not.
-     * Now, in both AES and Rijndael, you can have a variable key size. Rijndael supports
-     * 128, 160, 192, 224 and 256 bit keys but mcrypt only supports 128, 192 and 256 bit keys.
-     * Those are the same key sizes that AES supports but AES doesn't support variable block sizes so
-     * we need a wrapper that restricts the key lengths as AES restricts them but doesn't restrict
-     * the block size as AES restricts it.
-     *
-     * @package mcrypt_compat
-     * @author  Jim Wigginton <terrafrost@php.net>
-     * @access  public
+     * @param \phpseclib\Crypt\Base $td
+     * @param string $key
+     * @access private
      */
-    class phpseclib_mcrypt_rijndael extends Rijndael
+    function phpseclib_set_key(Base &$td, $key)
     {
-        /**
-         * Sets the key.
-         *
-         * Rijndael supports five different key lengths, AES only supports three.
-         *
-         * @see Crypt_Rijndael:setKey()
-         * @see setKeyLength()
-         * @access public
-         * @param string $key
-         */
-        public function setKey($key)
-        {
-            parent::setKey($key);
+        $length = $origLength = strlen($key);
 
-            if (!$this->explicit_key_length) {
-                $length = strlen($key);
+        $reflection = new \ReflectionClass($td);
+
+        switch ($reflection->getShortName()) {
+            case 'TripleDES':
+                $length = 24;
+                break;
+            case 'DES':
+                $length = 8;
+                break;
+            case 'Twofish':
+            case 'Rijndael':
                 switch (true) {
                     case $length <= 16:
-                        $this->key_length = 16;
+                        $length = 16;
                         break;
                     case $length <= 24:
-                        $this->key_length = 24;
+                        $length = 24;
                         break;
                     default:
-                        $this->key_length = 32;
+                        $length = 32;
                 }
-                $this->_setEngine();
-            }
+                break;
+            case 'Blowfish':
+                switch (true) {
+                    case $length <= 3:
+                        while (strlen($key) <= 5) {
+                            $key.= $key;
+                        }
+                        $key = substr($key, 0, 6);
+                        $td->setKey($key);
+                        return;
+                    case $length > 56:
+                        $length = 56;
+                }
+                break;
+            case 'RC2':
+                if ($length > 56) {
+                    $length = 56;
+                }
+                break;
+            case 'RC4':
+                if ($length > 256) {
+                    $length = 256;
+                }
         }
+
+        if ($length != $origLength) {
+            $key = str_pad(substr($key, 0, $length), $length, "\0");
+        }
+
+        $td->setKey($key);
+    }
+
+    /**
+     * Sets the IV
+     *
+     * @param \phpseclib\Crypt\Base $td
+     * @param string $iv
+     * @access private
+     */
+    function phpseclib_set_iv(Base &$td, $iv)
+    {
+        $length = $td->getBlockLength() >> 3;
+        $iv = str_pad(substr($iv, 0, $length), $length, "\0");
+        $td->setIV($iv);
     }
 
     /**
@@ -254,21 +283,21 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         }
         switch ($algorithm) {
             case 'rijndael-128':
-                $cipher = new phpseclib_mcrypt_rijndael($modeMap[$mode]);
+                $cipher = new Rijndael($modeMap[$mode]);
                 $cipher->setBlockLength(128);
                 break;
             case 'twofish':
                 $cipher = new Twofish($modeMap[$mode]);
                 break;
             case 'rijndael-192':
-                $cipher = new phpseclib_mcrypt_rijndael($modeMap[$mode]);
+                $cipher = new Rijndael($modeMap[$mode]);
                 $cipher->setBlockLength(192);
                 break;
             case 'des':
                 $cipher = new DES($modeMap[$mode]);
                 break;
             case 'rijndael-256':
-                $cipher = new phpseclib_mcrypt_rijndael($modeMap[$mode]);
+                $cipher = new Rijndael($modeMap[$mode]);
                 $cipher->setBlockLength(256);
                 break;
             case 'blowfish':
@@ -307,9 +336,23 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         // invalid parameters with mcrypt result in warning's. type hinting, as this function is doing,
         // produces a catchable fatal error.
 
-        $backup = clone $td;
-        $backup->setKeyLength(9999);
-        return $backup->getKeyLength() >> 3;
+        $reflection = new \ReflectionClass($td);
+
+        switch ($reflection->getShortName()) {
+            case 'Rijndael':
+            case 'Twofish':
+                return 32;
+            case 'DES':
+                return 8;
+            case 'TripleDES':
+                return 24;
+            case 'RC4':
+                return 256;
+            case 'Blowfish':
+                return 56;
+            case 'RC2':
+                return 128;
+        }
     }
 
    /**
@@ -489,7 +532,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     {
         $reflection = new \ReflectionObject($td);
         switch ($reflection->getShortName()) {
-            case 'phpseclib_mcrypt_rijndael':
+            case 'Rijndael':
                 return 'RIJNDAEL-' . $td->getBlockLength();
             case 'Twofish':
                 return 'TWOFISH';
@@ -612,10 +655,8 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         if (strlen($key) > $max_key_size) {
             trigger_error('mcrypt_generic_init(): Key size too large; supplied length: ' . strlen($key) . ', max: ' . $max_key_size, E_USER_WARNING);
         }
-        // both mcrypt and phpseclib 1.0/2.0 null pad keys that are of an invalid length to the next appropriate size
-        $td->setKey($key);
-        // the IV is similarily null padded
-        $td->setIV($iv);
+        phpseclib_set_key($td, $key);
+        phpseclib_set_iv($td, $iv);
 
         $td->enableContinuousBuffer();
         $td->mcrypt_polyfill_init = true;
@@ -895,7 +936,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         $sizes = phpseclib_mcrypt_module_get_supported_key_sizes($cipher);
         if (count($sizes) && !in_array($keyLen, $sizes)) {
             trigger_error(
-                'mcrypt_' . $op . '(): Key of size ' . $keyLen . ' not supported by this algorithm. Only keys of size ' .
+                'mcrypt_' . $op . '(): Key of size ' . $keyLen . ' not supported by this algorithm. Only keys of sizes ' .
                 preg_replace('#, (\d+)$#', ' or $1', implode(', ', $sizes)) . ' supported',
                 E_USER_WARNING
             );
@@ -1098,8 +1139,8 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             }
 
             $cipher->enableContinuousBuffer();
-            $cipher->setKey($this->params['key']);
-            $cipher->setIV($this->params['iv']);
+            phpseclib_set_key($cipher, $this->params['key']);
+            phpseclib_set_iv($cipher, $this->params['iv']);
 
             $this->op = $parts[0] == 'mcrypt';
             $this->cipher = $cipher;

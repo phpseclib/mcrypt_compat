@@ -423,16 +423,16 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
 
         $mcrypt = mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
         $compat = phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
-        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat), 'zzz1');
 
         $ciphertext = $mcrypt;
 
         $mcrypt = mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv);
         $compat = phpseclib_mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv);
-        $this->assertEquals($mcrypt, $compat);
+        $this->assertEquals($mcrypt, $compat, 'zzz2');
 
         $decrypted = $mcrypt;
-        $this->assertEquals($plaintext, $decrypted);
+        $this->assertEquals($plaintext, $decrypted, 'zzz3');
     }
 
     public function testAESDiffKeyLength()
@@ -695,25 +695,39 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
 
     public function testBlowfishShortKey()
     {
-        $key = 'a';
         $iv = str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('blowfish'));
 
         $plaintext = str_repeat('a', 100);
 
-        $mcrypt = mcrypt_encrypt('blowfish', $key, $plaintext, 'cbc', $iv);
-        $compat = phpseclib_mcrypt_encrypt('blowfish', $key, $plaintext, 'cbc', $iv);
-        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+        $key_source = 'abcdef';
+        for ($i = 1; $i < strlen($key_source); $i++) {
+            $key = substr($key_source, 0, $i);
+            $mcrypt = mcrypt_encrypt('blowfish', $key, $plaintext, 'cbc', $iv);
+            $compat = phpseclib_mcrypt_encrypt('blowfish', $key, $plaintext, 'cbc', $iv);
+            $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+        }
     }
 
-    public function testRC2ShortKey()
+    /**
+     * @group github10
+     */
+    public function test2DES()
     {
-        $key = 'a';
-        $iv = str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('rc2'));
+        $key = '123456789abcdefg';
 
-        $plaintext = str_repeat('a', 100);
+        $plaintext = 'Password:abc123';
 
-        $mcrypt = mcrypt_encrypt('rc2', $key, $plaintext, 'cbc', $iv);
-        $compat = phpseclib_mcrypt_encrypt('rc2', $key, $plaintext, 'cbc', $iv);
+        $td = mcrypt_module_open(MCRYPT_TRIPLEDES, '', MCRYPT_MODE_ECB, '');
+        $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td), MCRYPT_RAND);
+        mcrypt_generic_init($td, $key, $iv);
+        $mcrypt = mcrypt_generic($td, $plaintext);
+        mcrypt_generic_deinit($td);
+
+        $td = phpseclib_mcrypt_module_open(MCRYPT_TRIPLEDES, '', MCRYPT_MODE_ECB, '');
+        phpseclib_mcrypt_generic_init($td, $key, $iv);
+        $compat = phpseclib_mcrypt_generic($td, $plaintext);
+        phpseclib_mcrypt_generic_deinit($td);
+
         $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
     }
 
@@ -721,10 +735,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array('twofish', 'cbc', '\phpseclib\Crypt\Twofish'),
-            array('rijndael-128', 'cbc', 'phpseclib_mcrypt_rijndael'),
-            array('rijndael-192', 'cbc', 'phpseclib_mcrypt_rijndael'),
+            array('rijndael-128', 'cbc', '\phpseclib\Crypt\Rijndael'),
+            array('rijndael-192', 'cbc', '\phpseclib\Crypt\Rijndael'),
             array('des', 'cbc', '\phpseclib\Crypt\DES'),
-            array('rijndael-256', 'cbc', 'phpseclib_mcrypt_rijndael'),
+            array('rijndael-256', 'cbc', '\phpseclib\Crypt\Rijndael'),
             array('blowfish', 'cbc', '\phpseclib\Crypt\Blowfish'),
             array('rc2', 'cbc', '\phpseclib\Crypt\RC2'),
             array('tripledes', 'cbc', '\phpseclib\Crypt\TripleDES'),
