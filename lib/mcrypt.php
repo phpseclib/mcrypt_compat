@@ -114,7 +114,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      * @param string $key
      * @access private
      */
-    function phpseclib_set_key(Base &$td, $key)
+    function phpseclib_set_key(Base $td, $key)
     {
         $length = $origLength = strlen($key);
 
@@ -178,7 +178,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      * @param string $iv
      * @access private
      */
-    function phpseclib_set_iv(Base &$td, $iv)
+    function phpseclib_set_iv(Base $td, $iv)
     {
         if ($td->mcrypt_mode != 'stream' && $td->mcrypt_mode != 'ecb') {
             $length = $td->getBlockLength() >> 3;
