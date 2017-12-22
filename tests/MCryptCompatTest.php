@@ -731,6 +731,18 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
     }
 
+    public function testCFB()
+    {
+        $key = str_repeat('z', phpseclib_mcrypt_module_get_algo_key_size('rijndael-128'));
+        $iv = str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('rijndael-128'));
+
+        $plaintext = str_repeat('a', 100);
+
+        $mcrypt = mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cfb', $iv);
+        $compat = phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cfb', $iv);
+        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+    }
+
     public function mcryptModuleNameProvider()
     {
         return array(
