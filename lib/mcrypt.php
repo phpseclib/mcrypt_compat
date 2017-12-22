@@ -39,7 +39,7 @@ use phpseclib\Crypt\DES;
 use phpseclib\Crypt\RC2;
 use phpseclib\Crypt\RC4;
 use phpseclib\Crypt\Random;
-use phpseclib\Crypt\Base;
+use phpseclib\Crypt\Common\SymmetricKey as Base;
 
 if (!defined('MCRYPT_MODE_ECB')) {
     /**#@+
@@ -180,9 +180,11 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_set_iv(Base &$td, $iv)
     {
-        $length = $td->getBlockLength() >> 3;
-        $iv = str_pad(substr($iv, 0, $length), $length, "\0");
-        $td->setIV($iv);
+        if ($td->mcrypt_mode != 'stream' && $td->mcrypt_mode != 'ecb') {
+            $length = $td->getBlockLength() >> 3;
+            $iv = str_pad(substr($iv, 0, $length), $length, "\0");
+            $td->setIV($iv);
+        }
     }
 
     /**
@@ -267,12 +269,13 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     function phpseclib_mcrypt_module_open($algorithm, $algorithm_directory, $mode, $mode_directory)
     {
         $modeMap = array(
-            'ctr' => Base::MODE_CTR,
-            'ecb' => Base::MODE_ECB,
-            'cbc' => Base::MODE_CBC,
-            'ncfb'=> Base::MODE_CFB,
-            'nofb'=> Base::MODE_OFB,
-            'stream' => Base::MODE_STREAM
+            'ctr' => 'ctr',
+            'ecb' => 'ecb',
+            'cbc' => 'cbc',
+            'cfb' => 'cfb8',
+            'ncfb'=> 'cfb',
+            'nofb'=> 'ofb',
+            'stream' => 'stream'
         );
         switch (true) {
             case !isset($modeMap[$mode]):
@@ -317,6 +320,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 return false;
         }
 
+        $cipher->mcrypt_mode = $mode;
         $cipher->disablePadding();
 
         return $cipher;
@@ -562,16 +566,13 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_mcrypt_enc_get_modes_name(Base $td)
     {
-        $modeMap = array(
-            Base::MODE_CTR => 'CTR',
-            Base::MODE_ECB => 'ECB',
-            Base::MODE_CBC => 'CBC',
-            Base::MODE_CFB => 'nCFB',
-            Base::MODE_OFB => 'nOFB',
-            Base::MODE_STREAM => 'STREAM'
-        );
-
-        return isset($modeMap[$td->mode]) ? $modeMap[$td->mode] : false;
+        if (!isset($td->mcrypt_mode)) {
+            return false;
+        }
+        $mode = strtoupper($td->mcrypt_mode);
+        return $mode[0] == 'N' ?
+            'n' . substr($mode, 1) :
+            $mode;
     }
 
     /**
@@ -585,7 +586,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_mcrypt_enc_is_block_algorithm_mode(Base $td)
     {
-        return $td->mode != Base::MODE_STREAM;
+        return $td->mcrypt_mode != 'stream';
     }
 
     /**
@@ -613,7 +614,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_mcrypt_enc_is_block_mode(Base $td)
     {
-        return $td->mode == Base::MODE_ECB || $td->mode == Base::MODE_CBC;
+        return $td->mcrypt_mode == 'ecb' || $td->mcrypt_mode == 'cbc';
     }
 
     /**
@@ -687,7 +688,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         }
 
         // phpseclib does not currently provide a way to retrieve the mode once it has been set via "public" methods
-        if ($td->mode == Base::MODE_CBC || $td->mode == Base::MODE_ECB) {
+        if ($td->mcrypt_mode == 'cbc' || $td->mcrypt_mode == 'ecb') {
             $block_length = phpseclib_mcrypt_enc_get_iv_size($td);
             $extra = strlen($data) % $block_length;
             if ($extra) {
@@ -1067,7 +1068,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         public function filter($in, $out, &$consumed, $closing)
         {
             $newlen = 0;
-            $block_mode = $this->cipher->mode == Base::MODE_CBC || $this->cipher->mode == Base::MODE_ECB;
+            $block_mode = $this->cipher->mcrypt_mode == 'cbc' || $this->cipher->mcrypt_mode == 'ecb';
             while ($bucket = stream_bucket_make_writeable($in)) {
                 if ($block_mode) {
                     $bucket->data = $this->buffer . $bucket->data;
