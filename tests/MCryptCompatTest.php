@@ -731,6 +731,50 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
     }
 
+    /**
+     * demonstrates how mcrypt deals with IV's when they're not needed
+     *
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testIVOnStream()
+    {
+        $td = mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
+        mcrypt_generic_init($td, 'xxx', 'x');
+    }
+
+    /**
+     * demonstrates how phpseclib deals with IV's when they're not needed
+     *
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testIVOnStreamPHP()
+    {
+        $td = phpseclib_mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
+        phpseclib_mcrypt_generic_init($td, 'xxx', 'x');
+    }
+
+    /**
+     * demonstrates how mcrypt deals with mcrypt_generic_init calls with too few parameters
+     *
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptGenericWithTwoParams()
+    {
+        $td = mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
+        mcrypt_generic_init($td, 'xxx');
+    }
+
+    /**
+     * demonstrates how mcrypt deals with mcrypt_generic_init calls with too few parameters
+     *
+     * @expectedException PHPUnit_Framework_Error_Warning
+     */
+    public function testMcryptGenericWithTwoParamsPHP()
+    {
+        $td = phpseclib_mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
+        phpseclib_mcrypt_generic_init($td, 'xxx');
+    }
+
     public function mcryptModuleNameProvider()
     {
         return array(
