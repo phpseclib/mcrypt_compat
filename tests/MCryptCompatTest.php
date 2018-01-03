@@ -773,56 +773,6 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
     }
 
-    /**
-     * demonstrates how mcrypt deals with short IV's in stream mode
-     */
-    public function testIVOnStream()
-    {
-        if (!extension_loaded('mcrypt')) {
-            $this->markTestSkipped('mcrypt must be demonstrate it\'s behaviors');
-        }
-
-        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
-
-        $td = mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
-        mcrypt_generic_init($td, 'xxx', 'x');
-    }
-
-    /**
-     * demonstrates how phpseclib deals with short IV's in stream mode
-     */
-    public function testIVOnStreamPHP()
-    {
-        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
-
-        $td = phpseclib_mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
-        phpseclib_mcrypt_generic_init($td, 'xxx', 'x');
-    }
-
-    /**
-     * demonstrates how mcrypt deals with short IV's in ECB mode (eg. no warning thrown)
-     *
-     * @requires PHP 7.0
-     */
-    public function testIVOnECB()
-    {
-        if (!extension_loaded('mcrypt')) {
-            $this->markTestSkipped('mcrypt must be demonstrate it\'s behaviors');
-        }
-
-        $td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
-        mcrypt_generic_init($td, 'x', 'x');
-    }
-
-    /**
-     * demonstrates how phpseclib deals with short IV's in ECB mode (eg. no warning thrown)
-     */
-    public function testIVOnECBPHP()
-    {
-        $td = phpseclib_mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
-        phpseclib_mcrypt_generic_init($td, 'x', 'x');
-    }
-
     public function testMcryptGenericWithTwoParamsPHPPre71()
     {
         if (version_compare(PHP_VERSION, '7.1.0') >= 0) {
@@ -845,6 +795,99 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
         $td = phpseclib_mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
         phpseclib_mcrypt_generic_init($td, 'xxx');
+    }
+
+    public function providerForIVSizeChecks()
+    {
+        $tests = [
+            [ '', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 8, '44448888', 8, false ],
+            [ '', MCRYPT_3DES, MCRYPT_MODE_CBC, 'generic', 8, '44448888', 8, false ],
+            [ '', MCRYPT_3DES, MCRYPT_MODE_CBC, 'generic', 0, '44448888', 8, 'Iv size incorrect; supplied length: 0, needed: 8' ],
+            [ '', MCRYPT_3DES, MCRYPT_MODE_CBC, 'generic', 4, '44448888', 8, 'Iv size incorrect; supplied length: 4, needed: 8' ],
+            [ '', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'generic', 0, '44448888', 0, false ],
+            [ '', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'generic', 4, '44448888', 0, 'Iv size incorrect; supplied length: 4, needed: 0' ],
+            [ '', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'generic', 8, '44448888', 0, 'Iv size incorrect; supplied length: 8, needed: 0' ],
+            [ '', MCRYPT_3DES, MCRYPT_MODE_ECB, 'decrypt', 0, '44448888', 8, false ],
+            [ '', MCRYPT_3DES, MCRYPT_MODE_ECB, 'decrypt', 4, '44448888', 8, false ],
+            [ '', MCRYPT_3DES, MCRYPT_MODE_ECB, 'decrypt', 8, '44448888', 8, false ],
+            [ '', MCRYPT_3DES, MCRYPT_MODE_CBC, 'decrypt', 8, '44448888', 8, false ],
+            [ '', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'decrypt', 0, '44448888', 0, false ],
+            // here comes a known, but acceptable difference between the ext and phpseclib:
+            [ 'compat', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 0, '44448888', 8, false ],
+            [ 'compat', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 4, '44448888', 8, false ],
+            [ 'ext', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 0, '44448888', 8, PHP_VERSION_ID >= 70000 ? false : 'Iv size incorrect; supplied length: 0, needed: 8' ],
+            [ 'ext', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 4, '44448888', 8, PHP_VERSION_ID >= 70000 ? false : 'Iv size incorrect; supplied length: 4, needed: 8' ],
+        ];
+        if (PHP_VERSION_ID >= 56000) {
+            $tests+= [
+                // the following produce errors in older versions of PHP but stopped as of PHP 5.6+
+                [ '', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'decrypt', 4, '44448888', 0, false ],
+                [ '', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'decrypt', 8, '44448888', 0, false ],
+                // the following produced an error with a different message before PHP 5.6. mcrypt_compat uses the
+                // PHP 5.6+ error messages.
+                [ '', MCRYPT_3DES, MCRYPT_MODE_CBC, 'decrypt', 0, '44448888', 8, 'initialization vector of size 0, but size 8 is required' ],
+                [ '', MCRYPT_3DES, MCRYPT_MODE_CBC, 'decrypt', 4, '44448888', 8, 'initialization vector of size 4, but size 8 is required' ]
+            ];
+        }
+
+        $all_tests = [];
+        foreach ($tests as $test) {
+            if (empty($test[0])) {
+                $test[0] = 'ext';
+                $all_tests[] = $test;
+                $test[0] = 'compat';
+                $all_tests[] = $test;
+            } else {
+                $all_tests[] = $test;
+            }
+        }
+
+        return $all_tests;
+    }
+
+    /**
+     * @dataProvider providerForIVSizeChecks
+     */
+    public function testCompareIVSizeChecks($ext_or_compat, $cipher, $mode, $api, $input_iv_size, $input, $expected_iv_size, $expected_warning)
+    {
+        $this->assertSame(mcrypt_get_key_size($cipher, $mode), phpseclib_mcrypt_get_key_size($cipher, $mode));
+        $this->assertSame($expected_iv_size, mcrypt_get_iv_size($cipher, $mode));
+        $this->assertSame($expected_iv_size, phpseclib_mcrypt_get_iv_size($cipher, $mode));
+
+        $key = str_repeat('X', phpseclib_mcrypt_get_key_size($cipher, $mode));
+        $iv = str_repeat('Y', $input_iv_size);
+
+        if ($ext_or_compat === 'ext' && !extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt extension not loaded');
+        }
+
+        if ($expected_warning) {
+            $this->setExpectedException(PHPUnit_Framework_Error_Warning::class, $expected_warning);
+        }
+
+        if ($api === 'generic' && $ext_or_compat === 'ext') {
+            $td = mcrypt_module_open($cipher, '', $mode, '');
+            mcrypt_generic_init($td, $key, $iv);
+            mcrypt_generic_deinit($td);
+            mcrypt_module_close($td);
+        } elseif ($api === 'generic') {
+            $td = phpseclib_mcrypt_module_open($cipher, '', $mode, '');
+            phpseclib_mcrypt_generic_init($td, $key, $iv);
+            phpseclib_mcrypt_generic_deinit($td);
+            phpseclib_mcrypt_module_close($td);
+        } elseif ($ext_or_compat === 'ext') {
+            mcrypt_encrypt($cipher, $key, $input, $mode, $iv);
+        } else {
+            phpseclib_mcrypt_encrypt($cipher, $key, $input, $mode, $iv);
+        }
+    }
+
+    public function testTripleDESECBParameters()
+    {
+        $key_size = phpseclib_mcrypt_get_key_size(MCRYPT_3DES, MCRYPT_MODE_ECB);
+        $this->assertSame(24, $key_size);
+        $iv_size = phpseclib_mcrypt_get_iv_size(MCRYPT_3DES, MCRYPT_MODE_ECB);
+        $this->assertSame(8, $iv_size);
     }
 
     public function mcryptModuleNameProvider()

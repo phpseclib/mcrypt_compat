@@ -180,9 +180,11 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_set_iv(Base $td, $iv)
     {
-        $length = $td->getBlockLength() >> 3;
-        $iv = str_pad(substr($iv, 0, $length), $length, "\0");
-        $td->setIV($iv);
+        if (phpseclib_mcrypt_module_is_iv_mode($td->mcrypt_mode)) {
+            $length = $td->getBlockLength() >> 3;
+            $iv = str_pad(substr($iv, 0, $length), $length, "\0");
+            $td->setIV($iv);
+        }
     }
 
     /**
@@ -317,6 +319,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 return false;
         }
 
+        $cipher->mcrypt_mode = $mode;
         $cipher->disablePadding();
 
         return $cipher;
@@ -631,9 +634,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     }
 
     /**
-     * Returns the maximum supported keysize of the opened mode
-     *
-     * Gets the maximum supported key size of the algorithm in bytes.
+     * This function initializes all buffers needed for en/decryption.
      *
      * @param \phpseclib\Crypt\Base $td
      * @param string $key
@@ -644,7 +645,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     function phpseclib_mcrypt_generic_init(Base $td, $key, $iv)
     {
         $iv_size = phpseclib_mcrypt_enc_get_iv_size($td);
-        if (strlen($iv) != $iv_size) {
+        if (strlen($iv) != $iv_size && $td->mcrypt_mode != 'ecb') {
             trigger_error('mcrypt_generic_init(): Iv size incorrect; supplied length: ' . strlen($iv) . ', needed: ' . $iv_size, E_USER_WARNING);
         }
         if (!strlen($key)) {
@@ -687,7 +688,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         }
 
         // phpseclib does not currently provide a way to retrieve the mode once it has been set via "public" methods
-        if ($td->mode == Base::MODE_CBC || $td->mode == Base::MODE_ECB) {
+        if (phpseclib_mcrypt_module_is_block_mode($td->mcrypt_mode)) {
             $block_length = phpseclib_mcrypt_enc_get_iv_size($td);
             $extra = strlen($data) % $block_length;
             if ($extra) {
@@ -899,6 +900,23 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     }
 
     /**
+     * Returns if the specified mode can use an IV or not
+     *
+     * @param string $mode
+     * @return bool
+     * @access private
+     */
+    function phpseclib_mcrypt_module_is_iv_mode($mode)
+    {
+        switch ($mode) {
+            case 'ecb':
+            case 'stream':
+                return false;
+        }
+        return true;
+    }
+
+    /**
      * This function runs a self test on the specified module
      *
      * This function runs the self test on the algorithm specified.
@@ -955,20 +973,24 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             );
             return false;
         }
-        $iv_size = phpseclib_mcrypt_enc_get_iv_size($td);
-        if (!isset($iv) && $iv_size) {
-            trigger_error(
-                'mcrypt_' . $op . '(): Encryption mode requires an initialization vector of size  ' . $iv_size,
-                E_USER_WARNING
-            );
-            return false;
-        }
-        if (strlen($iv) != $iv_size) {
-            trigger_error(
-                'mcrypt_' . $op . '(): Received initialization vector of size  ' . strlen($iv) . ', but size ' . $iv_size . ' is required for this encryption mode',
-                E_USER_WARNING
-            );
-            return false;
+        if (phpseclib_mcrypt_module_is_iv_mode($mode)) {
+            $iv_size = phpseclib_mcrypt_enc_get_iv_size($td);
+            if (!isset($iv) && $iv_size) {
+                trigger_error(
+                    'mcrypt_' . $op . '(): Encryption mode requires an initialization vector of size ' . $iv_size,
+                    E_USER_WARNING
+                );
+                return false;
+            }
+            if (strlen($iv) != $iv_size) {
+                trigger_error(
+                    'mcrypt_' . $op . '(): Received initialization vector of size ' . strlen($iv) . ', but size ' . $iv_size . ' is required for this encryption mode',
+                    E_USER_WARNING
+                );
+                return false;
+            }
+        } else {
+            $iv = null;
         }
         phpseclib_mcrypt_generic_init($td, $key, $iv);
         return $op == 'encrypt' ? phpseclib_mcrypt_generic($td, $data) : phpseclib_mdecrypt_generic($td, $data);
@@ -1067,7 +1089,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         public function filter($in, $out, &$consumed, $closing)
         {
             $newlen = 0;
-            $block_mode = $this->cipher->mode == Base::MODE_CBC || $this->cipher->mode == Base::MODE_ECB;
+            $block_mode = phpseclib_mcrypt_module_is_block_mode($this->cipher->mcrypt_mode);
             while ($bucket = stream_bucket_make_writeable($in)) {
                 if ($block_mode) {
                     $bucket->data = $this->buffer . $bucket->data;
