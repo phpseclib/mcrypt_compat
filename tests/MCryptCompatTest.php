@@ -732,7 +732,7 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * demonstrates how mcrypt deals with IV's when they're not needed
+     * demonstrates how mcrypt deals with short IV's in stream mode
      *
      * @expectedException PHPUnit_Framework_Error_Warning
      */
@@ -743,7 +743,7 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * demonstrates how phpseclib deals with IV's when they're not needed
+     * demonstrates how phpseclib deals with short IV's in stream mode
      *
      * @expectedException PHPUnit_Framework_Error_Warning
      */
@@ -751,6 +751,26 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
     {
         $td = phpseclib_mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
         phpseclib_mcrypt_generic_init($td, 'xxx', 'x');
+    }
+
+    /**
+     * demonstrates how mcrypt deals with short IV's in ECB mode (eg. no warning thrown)
+     *
+     * @requires PHP 7.0
+     */
+    public function testIVOnECB()
+    {
+        $td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
+        mcrypt_generic_init($td, 'x', 'x');
+    }
+
+    /**
+     * demonstrates how phpseclib deals with short IV's in ECB mode (eg. no warning thrown)
+     */
+    public function testIVOnECBPHP()
+    {
+        $td = phpseclib_mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
+        phpseclib_mcrypt_generic_init($td, 'x', 'x');
     }
 
     /**
