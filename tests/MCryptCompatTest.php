@@ -773,24 +773,28 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         phpseclib_mcrypt_generic_init($td, 'x', 'x');
     }
 
-    /**
-     * demonstrates how mcrypt deals with mcrypt_generic_init calls with too few parameters
-     *
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
-    public function testMcryptGenericWithTwoParams()
+    public function testMcryptGenericWithTwoParamsPHPPre71()
     {
-        $td = mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
-        mcrypt_generic_init($td, 'xxx');
+        if (version_compare(PHP_VERSION, '7.1.0') >= 0) {
+            $this->markTestSkipped('PHPUnit_Framework_Error_Warning exception is thrown for legacy PHP versions only');
+        }
+
+        //$this->expectException('PHPUnit_Framework_Error_Warning');
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
+        $td = phpseclib_mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
+        phpseclib_mcrypt_generic_init($td, 'xxx');
     }
 
-    /**
-     * demonstrates how mcrypt deals with mcrypt_generic_init calls with too few parameters
-     *
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
-    public function testMcryptGenericWithTwoParamsPHP()
+    public function testMcryptGenericWithTwoParamsPHPPost71()
     {
+        if (version_compare(PHP_VERSION, '7.1.0') < 0) {
+            $this->markTestSkipped('ArgumentCountError exception is thrown for newer PHP versions only');
+        }
+
+        //$this->expectException('ArgumentCountError');
+        $this->setExpectedException('ArgumentCountError');
+
         $td = phpseclib_mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
         phpseclib_mcrypt_generic_init($td, 'xxx');
     }
