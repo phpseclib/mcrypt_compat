@@ -1,6 +1,6 @@
 <?php
 
-class MCryptCompatTest extends \PHPUnit_Framework_TestCase
+class MCryptCompatTest extends PHPUnit\Framework\TestCase
 {
     public function testAlgorithmList()
     {
@@ -24,20 +24,18 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         $this->assertInternalType('string', $result);
         $this->assertEquals($expectedLen, strlen($result));
     }
-    
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
+
     public function testMcryptCreateIvException()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $result = phpseclib_mcrypt_create_iv(0);
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
     public function testMcryptModuleOpenWithErrorModeException()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $result = phpseclib_mcrypt_module_open('arcfour', '', 'cbc', '');
     }
     
@@ -50,11 +48,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf($expectedInstance, $resultInstance);
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
     public function testMcryptModuleOpenException()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $result = phpseclib_mcrypt_module_open('unknown-module-name', '', 'cbc', '');
     }
 
@@ -72,11 +69,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expectedBlockLen, $result);
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
     public function testMcryptGetAlgoKeySizeBad()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         phpseclib_mcrypt_module_get_algo_key_size('zzz');
     }
 
@@ -88,48 +84,57 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
     public function testMcryptGetIVSizeBad()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         phpseclib_mcrypt_get_iv_size('zzz', 'cbc');
     }
 
     public function testMcryptGetIVSizeGood()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $this->assertEquals(
             mcrypt_get_iv_size('rijndael-128', 'cbc'),
             phpseclib_mcrypt_get_iv_size('rijndael-128', 'cbc')
         );
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
     public function testMcryptGetKeySizeBad()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         phpseclib_mcrypt_get_key_size('zzz', 'cbc');
     }
 
     public function testMcryptGetKeySizeGood()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $this->assertEquals(
             mcrypt_get_key_size('rijndael-128', 'cbc'),
             phpseclib_mcrypt_get_key_size('rijndael-128', 'cbc')
         );
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
     public function testMcryptGetBlockSizeBad()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         phpseclib_mcrypt_get_block_size('zzz', 'cbc');
     }
 
     public function testMcryptGetBlockSizeGood()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $this->assertEquals(
             mcrypt_get_block_size('rijndael-128', 'cbc'),
             phpseclib_mcrypt_get_block_size('rijndael-128', 'cbc')
@@ -197,31 +202,28 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($result);
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
     public function testMcryptGenericInitWithErrorIvSize()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
         $result = phpseclib_mcrypt_generic_init($td, 'key', 1);
     }
-    
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
+
     public function testMcryptGenericInitWithErrorNullKeySize()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
         $ivSize = phpseclib_mcrypt_enc_get_iv_size($td);
         $ivStr = str_repeat('=', $ivSize);
         $result = phpseclib_mcrypt_generic_init($td, null, $ivStr);
     }
-    
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
+
     public function testMcryptGenericInitWithErrorMaxKeySize()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
         $ivSize = phpseclib_mcrypt_enc_get_iv_size($td);
         $ivStr = str_repeat('=', $ivSize);
@@ -231,11 +233,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         $result = phpseclib_mcrypt_generic_init($td, $bigKeyStr, $ivStr);
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
     public function testMcryptGenericHelperWithException()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $data = 'data';
         $op = 'operation';
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
@@ -243,11 +244,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         $result = phpseclib_mcrypt_generic_helper($td, $data, $op);
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
     public function testMcryptGenericDeinitWithException()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
         unset($td->mcrypt_polyfill_init);
         $result = phpseclib_mcrypt_generic_deinit($td);
@@ -313,99 +313,89 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($result);
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
     public function testMcryptHelperWithInitialModuleException()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $result = phpseclib_mcrypt_helper('invalid-module', 'key', 'data', 'cbc', 'iv-str', 'operation');
     }
-    
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
+
     public function testMcryptHelperWithKeySizeNotSupportedException()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $key = str_repeat('===', 50);
         $result = phpseclib_mcrypt_helper('blowfish', $key, '', 'cbc', '', '');
     }
-    
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
+
     public function testMcryptHelperWithInitialIvSizeException()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $result = phpseclib_mcrypt_helper('blowfish', '', '', 'cbc', null, '');
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
     public function testMcryptHelperWithReceiveInitialIvSizeException()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $result = phpseclib_mcrypt_helper('blowfish', 10, '', 'cbc', 'iv-str', '');
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Notice
-     */
     public function testMcryptFilterWithOnCreateStreamParamsMustBeArray()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Notice');
+
         $filter = new phpseclib_mcrypt_filter();
         $filter->onCreate();
     }
-    
-    /**
-     * @expectedException PHPUnit_Framework_Error_Notice
-     */
+
     public function testMcryptFilterWithOnCreateStreamParamsNotProvidedOrString()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Notice');
+
         $params = array('fake-key' => 'fake-value');
         $filter = new phpseclib_mcrypt_filter();
         $filter->params = $params;
         $filter->onCreate();
     }
-    
-    /**
-     * @expectedException PHPUnit_Framework_Error_Notice
-     */
+
     public function testMcryptFilterWithOnCreateStreamParamsNotKeyOrString()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Notice');
+
         $params = array('iv' => 'fake-iv-str');
         $filter = new phpseclib_mcrypt_filter();
         $filter->params = $params;
         $filter->onCreate();
     }
-    
-    /**
-     * @expectedException PHPUnit_Framework_Error_Notice
-     */
+
     public function testMcryptFilterWithOnCreateErrorOpenEncryptionModule()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Notice');
+
         $params = array('iv' => 'fake-iv-str', 'key' => 'fake-key');
         $filter = new phpseclib_mcrypt_filter();
         $filter->filtername = 'fake.filter.name';
         $filter->params = $params;
         $filter->onCreate();
     }
-    
-    /**
-     * @expectedException PHPUnit_Framework_Error_Notice
-     */
+
     public function testMcryptFilterWithOnCreateErrorCryptname()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Notice');
+
         $params = array('iv' => 'fake-iv-str', 'key' => 'fake-key');
         $filter = new phpseclib_mcrypt_filter();
         $filter->filtername = 'fake_crypt.fake_cipher';
         $filter->params = $params;
         $filter->onCreate();
     }
-    
-    /**
-     * @expectedException PHPUnit_Framework_Error_Notice
-     */
+
     public function testMcryptFilterWithOnCreateErrorCipherName()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Notice');
+
         $params = array('iv' => 'fake-iv-str', 'key' => 'fake-key');
         $filter = new phpseclib_mcrypt_filter();
         $filter->filtername = 'mcrypt.fake_cipher';
@@ -415,6 +405,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
 
     public function testAESBasicSuccess()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $key = str_repeat('z', 16);
         $iv = str_repeat('z', 16);
 
@@ -437,6 +431,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
 
     public function testAESDiffKeyLength()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $key = str_repeat('z', 24);
         $iv = str_repeat('z', 16);
 
@@ -448,21 +446,24 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_Error_Warning
-     */
     public function testBadParamsMcrypt()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be demonstrate it\'s behaviors');
+        }
+
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         mcrypt_encrypt('rijndael-128', 'abc', 'asdf', 'cbc', 'zz');
     }
 
     /**
      * pretty much the same thing as testBadParamsMcrypt
-     *
-     * @expectedException PHPUnit_Framework_Error_Warning
      */
     public function testBadParamsMcryptCompat()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         phpseclib_mcrypt_encrypt('rijndael-128', 'abc', 'asdf', 'cbc', 'zz');
     }
 
@@ -491,6 +492,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
 
     public function testMcryptNCFB()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be demonstrate it\'s behaviors');
+        }
+
         list($v1, $v2) = $this->ncfbHelper('');
         $this->assertNotSame($v1, $v2);
     }
@@ -506,6 +511,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
      */
     public function testNullPadding()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $key = str_repeat('z', 16);
         $iv = str_repeat('z', 16);
 
@@ -527,6 +536,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
      */
     public function testMiddleKey()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $key = str_repeat('z', 20);
         $iv = str_repeat('z', 16);
 
@@ -547,10 +560,15 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
      * although mcrypt_generic() null pads keys mcrypt_encrypt() does not
      *
      * @requires PHP 5.6
-     * @expectedException PHPUnit_Framework_Error_Warning
      */
     public function testMiddleKey2()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be demonstrate it\'s behaviors');
+        }
+
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $key = str_repeat('z', 20);
         $iv = str_repeat('z', 16);
 
@@ -561,11 +579,11 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
 
     /**
      * phpseclib_mcrypt_generic() behaves in the same way
-     *
-     * @expectedException PHPUnit_Framework_Error_Warning
      */
     public function testMiddleKey3()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $key = str_repeat('z', 20);
         $iv = str_repeat('z', 16);
 
@@ -576,6 +594,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
 
     public function testShortKey()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $key = str_repeat('z', 4);
         $iv = str_repeat('z', 16);
 
@@ -597,6 +619,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
      */
     public function testStream()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $passphrase = 'My secret';
         $plaintext = 'Secret secret secret data';
 
@@ -658,6 +684,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
 
     public function testShortKeyIVStream()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $plaintext = 'Secret secret secret data';
 
         $iv = 'z';
@@ -683,6 +713,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
 
     public function testBlowfish()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $key = str_repeat('z', phpseclib_mcrypt_module_get_algo_key_size('blowfish'));
         $iv = str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('blowfish'));
 
@@ -695,6 +729,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
 
     public function testBlowfishShortKey()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $iv = str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('blowfish'));
 
         $plaintext = str_repeat('a', 100);
@@ -713,6 +751,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
      */
     public function test2DES()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
+        }
+
         $key = '123456789abcdefg';
 
         $plaintext = 'Password:abc123';
@@ -733,22 +775,26 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
 
     /**
      * demonstrates how mcrypt deals with short IV's in stream mode
-     *
-     * @expectedException PHPUnit_Framework_Error_Warning
      */
     public function testIVOnStream()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be demonstrate it\'s behaviors');
+        }
+
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $td = mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
         mcrypt_generic_init($td, 'xxx', 'x');
     }
 
     /**
      * demonstrates how phpseclib deals with short IV's in stream mode
-     *
-     * @expectedException PHPUnit_Framework_Error_Warning
      */
     public function testIVOnStreamPHP()
     {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
         $td = phpseclib_mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
         phpseclib_mcrypt_generic_init($td, 'xxx', 'x');
     }
@@ -760,6 +806,10 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
      */
     public function testIVOnECB()
     {
+        if (!extension_loaded('mcrypt')) {
+            $this->markTestSkipped('mcrypt must be demonstrate it\'s behaviors');
+        }
+
         $td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
         mcrypt_generic_init($td, 'x', 'x');
     }
@@ -779,7 +829,6 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
             $this->markTestSkipped('PHPUnit_Framework_Error_Warning exception is thrown for legacy PHP versions only');
         }
 
-        //$this->expectException('PHPUnit_Framework_Error_Warning');
         $this->setExpectedException('PHPUnit_Framework_Error_Warning');
 
         $td = phpseclib_mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
@@ -792,7 +841,6 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
             $this->markTestSkipped('ArgumentCountError exception is thrown for newer PHP versions only');
         }
 
-        //$this->expectException('ArgumentCountError');
         $this->setExpectedException('ArgumentCountError');
 
         $td = phpseclib_mcrypt_module_open(MCRYPT_ARCFOUR, '', MCRYPT_MODE_STREAM, '');
@@ -861,5 +909,25 @@ class MCryptCompatTest extends \PHPUnit_Framework_TestCase
             array('ecb', true),
             array('invalid-mode-name', false)
         );
+    }
+
+    public function setExpectedException($name, $message = null, $code = null)
+    {
+        if (version_compare(PHP_VERSION, '7.0.0') < 0) {
+            parent::setExpectedException($name, $message, $code);
+            return;
+        }
+        switch ($name) {
+            case 'PHPUnit_Framework_Error_Notice':
+            case 'PHPUnit_Framework_Error_Warning':
+                $name = str_replace('_', '\\', $name);
+        }
+        $this->expectException($name);
+        if (!empty($message)) {
+            $this->expectExceptionMessage($message);
+        }
+        if (!empty($code)) {
+            $this->expectExceptionCode($code);
+        }
     }
 }
