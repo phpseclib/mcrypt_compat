@@ -3,6 +3,8 @@ language: php
 php:
   - 5.6
   - 7.0
+  - 7.1
+  - 7.2
   - nightly
 
 matrix:
@@ -14,7 +16,7 @@ install:
   - composer install --prefer-dist
 
 script:
-  - vendor/bin/phpunit --coverage-clover=coverage.xml
+  - vendor/bin/phpunit -d error_reporting=24575 --coverage-clover=coverage.xml
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
