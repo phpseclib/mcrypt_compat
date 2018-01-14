@@ -221,7 +221,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     {
         return array(
             'cbc',
-            //'cfb',
+            'cfb',
             'ctr',
             'ecb',
             'ncfb',
@@ -844,6 +844,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             case 'cbc':
             case 'ctr':
             case 'ecb':
+            case 'cfb':
             case 'ncfb':
             case 'nofb':
                 return true;
