@@ -30,6 +30,9 @@
     "suggest": {
         "ext-openssl": "Will enable faster cryptographic operations"
     },
+    "provide": {
+        "ext-mcrypt": "*"
+    },
     "autoload": {
         "files": ["lib/mcrypt.php"]
     }
