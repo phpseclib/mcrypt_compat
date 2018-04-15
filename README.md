@@ -40,7 +40,7 @@ composer require phpseclib/mcrypt_compat
 
 - cbc
 - ncfb
-- cfb (master branch only)
+- cfb
 - ctr
 - ecb
 - nofb
