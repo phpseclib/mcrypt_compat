@@ -4,7 +4,8 @@
     "keywords": [
             "mcrypt",
             "encryption",
-            "cryptograpy"
+            "cryptograpy",
+            "polyfill"
         ],
     "license":      "MIT",
     "type":         "library",
