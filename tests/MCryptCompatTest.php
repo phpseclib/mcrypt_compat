@@ -711,6 +711,34 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $this->assertEquals($mcrypt, $compat);
     }
 
+    /**
+     * @group github18
+     */
+    public function testBadSizeStream()
+    {
+        $original = 'Hello, this a sample file content to be encrypted and decrypted.... END of file.';
+
+        $key = 'ae6fa3da6ae39b05ce17e69d5e18c236a7341c80592626d81d7c70013b7d436d';
+        $iv = '5dc7a17ebe32b6e62f0b5f9519d57afb';
+        $opts = array('iv' => $iv, 'key' => $key);
+
+        $filename = tempnam(sys_get_temp_dir(), 'phpseclib-test-');
+
+        $fp = fopen($filename, 'wb');
+        stream_filter_append($fp, 'convert.base64-encode', STREAM_FILTER_WRITE);
+        stream_filter_append($fp, 'phpseclib.mcrypt.rijndael-256', STREAM_FILTER_WRITE, $opts);
+        fwrite($fp, $original);
+        fclose($fp);
+
+        $fp = fopen($filename, 'rb');
+        stream_filter_append($fp, 'phpseclib.mdecrypt.rijndael-256', STREAM_FILTER_READ, $opts);
+        stream_filter_append($fp, 'convert.base64-decode', STREAM_FILTER_READ);
+        $decrypted = fread($fp, 1024);
+        fclose($fp);
+
+        $this->assertEquals($original, $decrypted);
+    }
+
     public function testBlowfish()
     {
         if (!extension_loaded('mcrypt')) {
