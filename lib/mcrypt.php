@@ -272,6 +272,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             'ctr' => Base::MODE_CTR,
             'ecb' => Base::MODE_ECB,
             'cbc' => Base::MODE_CBC,
+            'cfb' => Base::MODE_CFB8,
             'ncfb'=> Base::MODE_CFB,
             'nofb'=> Base::MODE_OFB,
             'stream' => Base::MODE_STREAM
