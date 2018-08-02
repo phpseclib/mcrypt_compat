@@ -930,6 +930,22 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $this->assertSame(8, $iv_size);
     }
 
+    /**
+     * @dataProvider mcryptBlockModuleNameProvider
+     */
+    public function testMcryptGenericMode($modeName, $validMode)
+    {
+        if (!$validMode) {
+            return;
+        }
+        $key = str_repeat('a', 16);
+        $iv = str_repeat('b', 16);
+        $plaintext = str_repeat('c', 16);
+        $mcrypt = mcrypt_encrypt('rijndael-128', $key, $plaintext, $modeName, $iv);
+        $compat = phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, $modeName, $iv);
+        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+    }
+
     public function mcryptModuleNameProvider()
     {
         return array(
@@ -964,6 +980,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
             array('cbc', true),
             array('ctr', true),
             array('ecb', true),
+            array('cfb', true),
             array('ncfb', true),
             array('nofb', true),
             array('invalid-mode', false)
