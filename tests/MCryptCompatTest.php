@@ -38,7 +38,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
         $result = phpseclib_mcrypt_module_open('arcfour', '', 'cbc', '');
     }
-    
+
     /**
      * @dataProvider mcryptModuleNameProvider
      */
@@ -163,18 +163,18 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
         $result = phpseclib_mcrypt_enc_is_block_algorithm_mode($td);
         $this->assertTrue($result);
-        
+
         $td = phpseclib_mcrypt_module_open('arcfour', '', 'stream', '');
         $result = phpseclib_mcrypt_enc_is_block_algorithm_mode($td);
         $this->assertFalse($result);
     }
-    
+
     public function testMcryptEncIsBlockAlgorithm()
     {
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
         $result = phpseclib_mcrypt_enc_is_block_algorithm($td);
         $this->assertTrue($result);
-        
+
         $td = phpseclib_mcrypt_module_open('arcfour', '', 'stream', '');
         $result = phpseclib_mcrypt_enc_is_block_algorithm($td);
         $this->assertFalse($result);
@@ -185,11 +185,11 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
         $result = phpseclib_mcrypt_enc_is_block_mode($td);
         $this->assertTrue($result);
-        
+
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'ecb', '');
         $result = phpseclib_mcrypt_enc_is_block_mode($td);
         $this->assertTrue($result);
-        
+
         $td = phpseclib_mcrypt_module_open('arcfour', '', 'stream', '');
         $result = phpseclib_mcrypt_enc_is_block_mode($td);
         $this->assertFalse($result);
@@ -480,8 +480,8 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $blocks = array(10, 5, 17, 16);
         $v1 = $v2 = '';
         foreach ($blocks as $block) {
-            $v1.= call_user_func($prefix . 'mdecrypt_generic', $td, str_repeat('c', $block));
-            $v2.= str_repeat('c', $block);
+            $v1 .= call_user_func($prefix . 'mdecrypt_generic', $td, str_repeat('c', $block));
+            $v2 .= str_repeat('c', $block);
         }
         call_user_func($prefix . 'mcrypt_generic_deinit', $td);
         call_user_func($prefix . 'mcrypt_generic_init', $td, str_repeat('a', 16), str_repeat('a', 16));
@@ -628,7 +628,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
         $iv = substr(md5('iv' . $passphrase, true), 0, 8);
         $key = substr(md5('pass1' . $passphrase, true) .
-                      md5('pass2' . $passphrase, true), 0, 24);
+            md5('pass2' . $passphrase, true), 0, 24);
         $opts = array('iv' => $iv, 'key' => $key);
 
         $expected = substr($plaintext . $plaintext, 0, 48);
@@ -840,33 +840,33 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
     public function providerForIVSizeChecks()
     {
         $tests = [
-            [ '', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 8, '44448888', 8, false ],
-            [ '', MCRYPT_3DES, MCRYPT_MODE_CBC, 'generic', 8, '44448888', 8, false ],
-            [ '', MCRYPT_3DES, MCRYPT_MODE_CBC, 'generic', 0, '44448888', 8, 'Iv size incorrect; supplied length: 0, needed: 8' ],
-            [ '', MCRYPT_3DES, MCRYPT_MODE_CBC, 'generic', 4, '44448888', 8, 'Iv size incorrect; supplied length: 4, needed: 8' ],
-            [ '', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'generic', 0, '44448888', 0, false ],
-            [ '', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'generic', 4, '44448888', 0, 'Iv size incorrect; supplied length: 4, needed: 0' ],
-            [ '', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'generic', 8, '44448888', 0, 'Iv size incorrect; supplied length: 8, needed: 0' ],
-            [ '', MCRYPT_3DES, MCRYPT_MODE_ECB, 'decrypt', 0, '44448888', 8, false ],
-            [ '', MCRYPT_3DES, MCRYPT_MODE_ECB, 'decrypt', 4, '44448888', 8, false ],
-            [ '', MCRYPT_3DES, MCRYPT_MODE_ECB, 'decrypt', 8, '44448888', 8, false ],
-            [ '', MCRYPT_3DES, MCRYPT_MODE_CBC, 'decrypt', 8, '44448888', 8, false ],
-            [ '', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'decrypt', 0, '44448888', 0, false ],
+            ['', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 8, '44448888', 8, false],
+            ['', MCRYPT_3DES, MCRYPT_MODE_CBC, 'generic', 8, '44448888', 8, false],
+            ['', MCRYPT_3DES, MCRYPT_MODE_CBC, 'generic', 0, '44448888', 8, 'Iv size incorrect; supplied length: 0, needed: 8'],
+            ['', MCRYPT_3DES, MCRYPT_MODE_CBC, 'generic', 4, '44448888', 8, 'Iv size incorrect; supplied length: 4, needed: 8'],
+            ['', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'generic', 0, '44448888', 0, false],
+            ['', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'generic', 4, '44448888', 0, 'Iv size incorrect; supplied length: 4, needed: 0'],
+            ['', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'generic', 8, '44448888', 0, 'Iv size incorrect; supplied length: 8, needed: 0'],
+            ['', MCRYPT_3DES, MCRYPT_MODE_ECB, 'decrypt', 0, '44448888', 8, false],
+            ['', MCRYPT_3DES, MCRYPT_MODE_ECB, 'decrypt', 4, '44448888', 8, false],
+            ['', MCRYPT_3DES, MCRYPT_MODE_ECB, 'decrypt', 8, '44448888', 8, false],
+            ['', MCRYPT_3DES, MCRYPT_MODE_CBC, 'decrypt', 8, '44448888', 8, false],
+            ['', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'decrypt', 0, '44448888', 0, false],
             // here comes a known, but acceptable difference between the ext and phpseclib:
-            [ 'compat', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 0, '44448888', 8, false ],
-            [ 'compat', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 4, '44448888', 8, false ],
-            [ 'ext', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 0, '44448888', 8, PHP_VERSION_ID >= 70000 ? false : 'Iv size incorrect; supplied length: 0, needed: 8' ],
-            [ 'ext', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 4, '44448888', 8, PHP_VERSION_ID >= 70000 ? false : 'Iv size incorrect; supplied length: 4, needed: 8' ],
+            ['compat', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 0, '44448888', 8, false],
+            ['compat', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 4, '44448888', 8, false],
+            ['ext', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 0, '44448888', 8, PHP_VERSION_ID >= 70000 ? false : 'Iv size incorrect; supplied length: 0, needed: 8'],
+            ['ext', MCRYPT_3DES, MCRYPT_MODE_ECB, 'generic', 4, '44448888', 8, PHP_VERSION_ID >= 70000 ? false : 'Iv size incorrect; supplied length: 4, needed: 8'],
         ];
         if (PHP_VERSION_ID >= 56000) {
-            $tests+= [
+            $tests += [
                 // the following produce errors in older versions of PHP but stopped as of PHP 5.6+
-                [ '', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'decrypt', 4, '44448888', 0, false ],
-                [ '', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'decrypt', 8, '44448888', 0, false ],
+                ['', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'decrypt', 4, '44448888', 0, false],
+                ['', MCRYPT_ARCFOUR, MCRYPT_MODE_STREAM, 'decrypt', 8, '44448888', 0, false],
                 // the following produced an error with a different message before PHP 5.6. mcrypt_compat uses the
                 // PHP 5.6+ error messages.
-                [ '', MCRYPT_3DES, MCRYPT_MODE_CBC, 'decrypt', 0, '44448888', 8, 'initialization vector of size 0, but size 8 is required' ],
-                [ '', MCRYPT_3DES, MCRYPT_MODE_CBC, 'decrypt', 4, '44448888', 8, 'initialization vector of size 4, but size 8 is required' ]
+                ['', MCRYPT_3DES, MCRYPT_MODE_CBC, 'decrypt', 0, '44448888', 8, 'initialization vector of size 0, but size 8 is required'],
+                ['', MCRYPT_3DES, MCRYPT_MODE_CBC, 'decrypt', 4, '44448888', 8, 'initialization vector of size 4, but size 8 is required'],
             ];
         }
 
@@ -957,7 +957,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
             array('blowfish', 'cbc', '\phpseclib\Crypt\Blowfish'),
             array('rc2', 'cbc', '\phpseclib\Crypt\RC2'),
             array('tripledes', 'cbc', '\phpseclib\Crypt\TripleDES'),
-            array('arcfour', 'stream', '\phpseclib\Crypt\RC4')
+            array('arcfour', 'stream', '\phpseclib\Crypt\RC4'),
         );
     }
 
@@ -970,7 +970,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
             array('blowfish', 'cbc', 'BLOWFISH'),
             array('rc2', 'cbc', 'RC2'),
             array('tripledes', 'cbc', 'TRIPLEDES'),
-            array('arcfour', 'stream', 'ARCFOUR')
+            array('arcfour', 'stream', 'ARCFOUR'),
         );
     }
 
@@ -983,7 +983,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
             array('cfb', true),
             array('ncfb', true),
             array('nofb', true),
-            array('invalid-mode', false)
+            array('invalid-mode', false),
         );
     }
 
@@ -998,7 +998,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
             array('blowfish', true),
             array('rc2', true),
             array('tripledes', true),
-            array('invalid-algorithm-name', false)
+            array('invalid-algorithm-name', false),
         );
     }
 
@@ -1007,7 +1007,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         return array(
             array('cbc', true),
             array('ecb', true),
-            array('invalid-mode-name', false)
+            array('invalid-mode-name', false),
         );
     }
 
