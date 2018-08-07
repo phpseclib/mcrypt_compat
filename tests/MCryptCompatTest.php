@@ -931,13 +931,10 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
     }
 
     /**
-     * @dataProvider mcryptBlockModuleNameProvider
+     * @dataProvider mcryptBlockModuleNameWithoutInvalidModuleProvider
      */
     public function testMcryptGenericMode($modeName, $validMode)
     {
-        if (!$validMode) {
-            return;
-        }
         $key = str_repeat('a', 16);
         $iv = str_repeat('b', 16);
         $plaintext = str_repeat('c', 16);
@@ -971,6 +968,18 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
             array('rc2', 'cbc', 'RC2'),
             array('tripledes', 'cbc', 'TRIPLEDES'),
             array('arcfour', 'stream', 'ARCFOUR'),
+        );
+    }
+    
+    public function mcryptBlockModuleNameWithoutInvalidModuleProvider()
+    {
+        return array(
+            array('cbc', true),
+            array('ctr', true),
+            array('ecb', true),
+            array('cfb', true),
+            array('ncfb', true),
+            array('nofb', true)
         );
     }
 
