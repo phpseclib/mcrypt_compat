@@ -570,9 +570,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             return false;
         }
         $mode = strtoupper($td->mcrypt_mode);
-        return $mode[0] == 'N' ?
-        'n' . substr($mode, 1) :
-        $mode;
+        return $mode[0] == 'N' ? 'n' . substr($mode, 1) : $mode;
     }
 
     /**
