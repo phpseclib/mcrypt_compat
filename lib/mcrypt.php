@@ -1160,9 +1160,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 trigger_error('stream_filter_append(): key not specified or is not a string');
                 return false;
             }
-            $filtername = substr($this->filtername, 0, 10) == 'phpseclib.' ?
-            substr($this->filtername, 10) :
-            $this->filtername;
+            $filtername = substr($this->filtername, 0, 10) == 'phpseclib.' ? substr($this->filtername, 10) : $this->filtername;
             $parts = explode('.', $filtername);
             if (count($parts) != 2) {
                 trigger_error('stream_filter_append(): Could not open encryption module');
