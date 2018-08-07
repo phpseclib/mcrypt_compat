@@ -1124,9 +1124,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
 
             if ($closing && strlen($this->buffer)) {
                 $temp = $this->buffer . str_repeat("\0", $this->block_length - strlen($this->buffer));
-                $data = $this->op ?
-                $this->cipher->encrypt($temp) :
-                $this->cipher->decrypt($temp);
+                $data = $this->op ? $this->cipher->encrypt($temp) : $this->cipher->decrypt($temp);
                 $newlen += strlen($data);
                 $bucket = stream_bucket_new($this->bh, $data);
                 $this->buffer = '';
