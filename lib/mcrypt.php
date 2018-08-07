@@ -1115,9 +1115,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                     }
                 }
 
-                $bucket->data = $this->op ?
-                $this->cipher->encrypt($bucket->data) :
-                $this->cipher->decrypt($bucket->data);
+                $bucket->data = $this->op ? $this->cipher->encrypt($bucket->data) : $this->cipher->decrypt($bucket->data);
                 $newlen += strlen($bucket->data);
                 $consumed += $bucket->datalen;
 
