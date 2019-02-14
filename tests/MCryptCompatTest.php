@@ -2,6 +2,22 @@
 
 class MCryptCompatTest extends PHPUnit\Framework\TestCase
 {
+    /** @var string */
+    private $expectedErrorMessage;
+
+    /** @var int */
+    private $expectedErrorLevel;
+
+    /** @var callable */
+    private $previousErrorHandler;
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $this->previousErrorHandler = set_error_handler([$this, 'errorHandler']);
+    }
+
     public function testAlgorithmList()
     {
         $this->assertInternalType('array', phpseclib_mcrypt_list_algorithms());
@@ -546,6 +562,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $plaintext = 'a';
 
         $td = mcrypt_module_open('rijndael-128', '', 'cbc', '');
+        $this->expectTriggerError('phpseclib_set_key(): Key size of 20 has been changed to: 24', E_USER_WARNING);
         mcrypt_generic_init($td, $key, $iv);
         $mcrypt = bin2hex(mcrypt_generic($td, 'This is very important data'));
 
@@ -608,6 +625,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $mcrypt = bin2hex(mcrypt_generic($td, 'This is very important data'));
 
         $td = phpseclib_mcrypt_module_open('rijndael-128', '', 'cbc', '');
+        $this->expectTriggerError('phpseclib_set_key(): Key size of 4 has been changed to: 16', E_USER_WARNING);
         phpseclib_mcrypt_generic_init($td, $key, $iv);
         $phpseclib = bin2hex(phpseclib_mcrypt_generic($td, 'This is very important data'));
 
@@ -702,6 +720,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         fclose($fp);
 
         $fp = fopen('php://memory', 'wb+');
+        $this->expectTriggerError('phpseclib_set_key(): Key size of 1 has been changed to: 24', E_USER_WARNING);
         stream_filter_append($fp, 'phpseclib.mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
         fwrite($fp, $plaintext);
         rewind($fp);
@@ -726,11 +745,13 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
         $fp = fopen($filename, 'wb');
         stream_filter_append($fp, 'convert.base64-encode', STREAM_FILTER_WRITE);
+        $this->expectTriggerError('phpseclib_set_key(): Key size of 64 has been changed to: 32', E_USER_WARNING);
         stream_filter_append($fp, 'phpseclib.mcrypt.rijndael-256', STREAM_FILTER_WRITE, $opts);
         fwrite($fp, $original);
         fclose($fp);
 
         $fp = fopen($filename, 'rb');
+        $this->expectTriggerError('phpseclib_set_key(): Key size of 64 has been changed to: 32', E_USER_WARNING);
         stream_filter_append($fp, 'phpseclib.mdecrypt.rijndael-256', STREAM_FILTER_READ, $opts);
         stream_filter_append($fp, 'convert.base64-decode', STREAM_FILTER_READ);
         $decrypted = fread($fp, 1024);
@@ -794,6 +815,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         mcrypt_generic_deinit($td);
 
         $td = phpseclib_mcrypt_module_open(MCRYPT_TRIPLEDES, '', MCRYPT_MODE_ECB, '');
+        $this->expectTriggerError('phpseclib_set_key(): Key size of 16 has been changed to: 24', E_USER_WARNING);
         phpseclib_mcrypt_generic_init($td, $key, $iv);
         $compat = phpseclib_mcrypt_generic($td, $plaintext);
         phpseclib_mcrypt_generic_deinit($td);
@@ -1029,5 +1051,31 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         if (!empty($code)) {
             $this->expectExceptionCode($code);
         }
+    }
+
+    public function errorHandler($errNo, $errStr, $errFile, $errLine, $errContext)
+    {
+        if ($errStr === $this->expectedErrorMessage && $errNo === $this->expectedErrorLevel)
+        {
+            return;
+        }
+
+        call_user_func($this->previousErrorHandler, $errNo, $errStr, $errFile, $errLine, $errContext);
+    }
+
+    public function expectTriggerError($errorMessage, $errorLevel)
+    {
+        $this->expectedErrorMessage = $errorMessage;
+        $this->expectedErrorLevel   = $errorLevel;
+    }
+
+    protected function tearDown()
+    {
+        $this->expectedErrorMessage = null;
+        $this->expectedErrorLevel   = null;
+
+        restore_error_handler();
+
+        parent::tearDown();
     }
 }
