@@ -154,8 +154,8 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 }
                 break;
             case 'RC2':
-                if ($length > 56) {
-                    $length = 56;
+                if ($length > 128) {
+                    $length = 128;
                 }
                 break;
             case 'RC4':
