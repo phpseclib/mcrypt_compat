@@ -154,8 +154,8 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 }
                 break;
             case 'RC2':
-                if ($length > 56) {
-                    $length = 56;
+                if ($length > 128) {
+                    $length = 128;
                 }
                 break;
             case 'RC4':
@@ -165,6 +165,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         }
 
         if ($length != $origLength) {
+            trigger_error(sprintf('phpseclib_set_key(): Key size of %d has been changed to: %d', $origLength, $length), E_USER_WARNING);
             $key = str_pad(substr($key, 0, $length), $length, "\0");
         }
 
