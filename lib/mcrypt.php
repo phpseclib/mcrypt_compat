@@ -1108,7 +1108,9 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 if ($this->block_mode) {
                     $bucket->data = $this->buffer . $bucket->data;
                     $extra = strlen($bucket->data) % $this->block_length;
-                    if ($extra) {
+                    if (!$extra) {
+                        $this->buffer = '';
+                    } else {
                         $this->buffer = substr($bucket->data, -$extra);
                         $bucket->data = substr($bucket->data, 0, -$extra);
                     }
