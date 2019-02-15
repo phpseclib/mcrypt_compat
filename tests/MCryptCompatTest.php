@@ -946,6 +946,34 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
     }
 
+    public function test128ByteRC2Key()
+    {
+        $key = str_repeat('z', 128);
+        $iv = str_repeat('z', 8);
+        $plaintext = 'This is very important data';
+        $ciphertext = '3280b05de0f597a606c14fa129da7569e374001742c114477de1d510253099a2';
+
+        $td = phpseclib_mcrypt_module_open('rc2', '', 'cbc', '');
+        phpseclib_mcrypt_generic_init($td, $key, $iv);
+        $mcrypt = bin2hex(phpseclib_mcrypt_generic($td, $plaintext));
+
+        $this->assertEquals(
+            $ciphertext,
+            $mcrypt
+        );
+
+        if (extension_loaded('mcrypt')) {
+            $td = mcrypt_module_open('rc2', '', 'cbc', '');
+            mcrypt_generic_init($td, $key, $iv);
+            $mcrypt = bin2hex(mcrypt_generic($td, $plaintext));
+
+            $this->assertEquals(
+                $ciphertext,
+                $mcrypt
+            );
+        }
+    }
+
     public function mcryptModuleNameProvider()
     {
         return array(
