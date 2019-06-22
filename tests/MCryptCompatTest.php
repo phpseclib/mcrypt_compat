@@ -449,7 +449,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
     public function testBadParamsMcrypt()
     {
         if (!extension_loaded('mcrypt')) {
-            $this->markTestSkipped('mcrypt must be demonstrate it\'s behaviors');
+            $this->markTestSkipped('mcrypt must be installed to demonstrate it\'s behaviors');
         }
 
         $this->setExpectedException('PHPUnit_Framework_Error_Warning');
