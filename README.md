@@ -4,6 +4,12 @@
 
 PHP 5.x/7.x polyfill for mcrypt extension.
 
+## Supporting mcrypt_compat
+
+- [Become a backer or sponsor on Patreon](https://www.patreon.com/phpseclib)
+- [One-time donation via PayPal or crypto-currencies](http://sourceforge.net/donate/index.php?group_id=198487)
+- [Subscribe to Tidelift](https://tidelift.com/subscription/pkg/packagist-phpseclib-mcrypt-compat?utm_source=packagist-phpseclib-mcrypt-compat&utm_medium=referral&utm_campaign=readme)
+
 ## Installation
 
 With [Composer](https://getcomposer.org/):
@@ -47,3 +53,7 @@ composer require phpseclib/mcrypt_compat
 - stream
 
 Although `nofb` is supported `ofb` is not. Further, mcrypt_compat's `ncfb` implementation has some incompatibles with mcrypt's implementation where `mcrypt_generic` and `mdecrypt_generic` are concerned. The unit tests elaborate.
+
+## Security contact information
+
+To report a security vulnerability, please use the [Tidelift security contact](https://tidelift.com/security). Tidelift will coordinate the fix and disclosure.
