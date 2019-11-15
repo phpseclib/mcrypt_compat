@@ -22,7 +22,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $expectedLen = 20;
         $result = phpseclib_mcrypt_create_iv($expectedLen);
         $this->assertInternalType('string', $result);
-        $this->assertEquals($expectedLen, strlen($result));
+        $this->assertEquals($expectedLen, \strlen($result));
     }
 
     public function testMcryptCreateIvException()
@@ -93,7 +93,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
     public function testMcryptGetIVSizeGood()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
@@ -112,7 +112,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
     public function testMcryptGetKeySizeGood()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
@@ -131,7 +131,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
     public function testMcryptGetBlockSizeGood()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
@@ -216,7 +216,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
         $ivSize = phpseclib_mcrypt_enc_get_iv_size($td);
-        $ivStr = str_repeat('=', $ivSize);
+        $ivStr = \str_repeat('=', $ivSize);
         $result = phpseclib_mcrypt_generic_init($td, null, $ivStr);
     }
 
@@ -226,10 +226,10 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
         $ivSize = phpseclib_mcrypt_enc_get_iv_size($td);
-        $ivStr = str_repeat('=', $ivSize);
+        $ivStr = \str_repeat('=', $ivSize);
         $maxKeySize = phpseclib_mcrypt_enc_get_key_size($td);
         $maxKeySize += 1;
-        $bigKeyStr = str_repeat('=', $maxKeySize);
+        $bigKeyStr = \str_repeat('=', $maxKeySize);
         $result = phpseclib_mcrypt_generic_init($td, $bigKeyStr, $ivStr);
     }
 
@@ -324,7 +324,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
     {
         $this->setExpectedException('PHPUnit_Framework_Error_Warning');
 
-        $key = str_repeat('===', 50);
+        $key = \str_repeat('===', 50);
         $result = phpseclib_mcrypt_helper('blowfish', $key, '', 'cbc', '', '');
     }
 
@@ -405,19 +405,19 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
     public function testAESBasicSuccess()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
-        $key = str_repeat('z', 16);
-        $iv = str_repeat('z', 16);
+        $key = \str_repeat('z', 16);
+        $iv = \str_repeat('z', 16);
 
         // a plaintext / ciphertext of length 1 is of an insufficient length for cbc mode
-        $plaintext = str_repeat('a', 16);
+        $plaintext = \str_repeat('a', 16);
 
         $mcrypt = mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
         $compat = phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
-        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat), 'zzz1');
+        $this->assertEquals(\bin2hex($mcrypt), \bin2hex($compat), 'zzz1');
 
         $ciphertext = $mcrypt;
 
@@ -431,24 +431,24 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
     public function testAESDiffKeyLength()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
-        $key = str_repeat('z', 24);
-        $iv = str_repeat('z', 16);
+        $key = \str_repeat('z', 24);
+        $iv = \str_repeat('z', 16);
 
         // a plaintext / ciphertext of length 1 is of an insufficient length for cbc mode
-        $plaintext = str_repeat('a', 16);
+        $plaintext = \str_repeat('a', 16);
 
         $mcrypt = mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
         $compat = phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv);
-        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+        $this->assertEquals(\bin2hex($mcrypt), \bin2hex($compat));
     }
 
     public function testBadParamsMcrypt()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to demonstrate it\'s behaviors');
         }
 
@@ -475,24 +475,24 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
      */
     public function ncfbHelper($prefix)
     {
-        $td = call_user_func($prefix . 'mcrypt_module_open', 'rijndael-128', '', 'ncfb', '');
-        call_user_func($prefix . 'mcrypt_generic_init', $td, str_repeat('a', 16), str_repeat('a', 16));
+        $td = \call_user_func($prefix . 'mcrypt_module_open', 'rijndael-128', '', 'ncfb', '');
+        \call_user_func($prefix . 'mcrypt_generic_init', $td, \str_repeat('a', 16), \str_repeat('a', 16));
         $blocks = array(10, 5, 17, 16);
         $v1 = $v2 = '';
         foreach ($blocks as $block) {
-            $v1.= call_user_func($prefix . 'mdecrypt_generic', $td, str_repeat('c', $block));
-            $v2.= str_repeat('c', $block);
+            $v1.= \call_user_func($prefix . 'mdecrypt_generic', $td, \str_repeat('c', $block));
+            $v2.= \str_repeat('c', $block);
         }
-        call_user_func($prefix . 'mcrypt_generic_deinit', $td);
-        call_user_func($prefix . 'mcrypt_generic_init', $td, str_repeat('a', 16), str_repeat('a', 16));
-        $v2 = call_user_func($prefix . 'mdecrypt_generic', $td, $v2);
+        \call_user_func($prefix . 'mcrypt_generic_deinit', $td);
+        \call_user_func($prefix . 'mcrypt_generic_init', $td, \str_repeat('a', 16), \str_repeat('a', 16));
+        $v2 = \call_user_func($prefix . 'mdecrypt_generic', $td, $v2);
 
         return array($v1, $v2);
     }
 
     public function testMcryptNCFB()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be demonstrate it\'s behaviors');
         }
 
@@ -511,22 +511,22 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
      */
     public function testNullPadding()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
-        $key = str_repeat('z', 16);
-        $iv = str_repeat('z', 16);
+        $key = \str_repeat('z', 16);
+        $iv = \str_repeat('z', 16);
 
         // a plaintext / ciphertext of length 1 is of an insufficient length for cbc mode
         $plaintext = $ciphertext = 'a';
 
-        $mcrypt = bin2hex(mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv));
-        $compat = bin2hex(phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv));
+        $mcrypt = \bin2hex(mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv));
+        $compat = \bin2hex(phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cbc', $iv));
         $this->assertEquals($mcrypt, $compat);
 
-        $mcrypt = bin2hex(mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv));
-        $compat = bin2hex(phpseclib_mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv));
+        $mcrypt = \bin2hex(mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv));
+        $compat = \bin2hex(phpseclib_mcrypt_decrypt('rijndael-128', $key, $ciphertext, 'cbc', $iv));
         $this->assertEquals($mcrypt, $compat);
     }
 
@@ -536,22 +536,22 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
      */
     public function testMiddleKey()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
-        $key = str_repeat('z', 20);
-        $iv = str_repeat('z', 16);
+        $key = \str_repeat('z', 20);
+        $iv = \str_repeat('z', 16);
 
         $plaintext = 'a';
 
         $td = mcrypt_module_open('rijndael-128', '', 'cbc', '');
         mcrypt_generic_init($td, $key, $iv);
-        $mcrypt = bin2hex(mcrypt_generic($td, 'This is very important data'));
+        $mcrypt = \bin2hex(mcrypt_generic($td, 'This is very important data'));
 
         $td = phpseclib_mcrypt_module_open('rijndael-128', '', 'cbc', '');
         phpseclib_mcrypt_generic_init($td, $key, $iv);
-        $phpseclib = bin2hex(phpseclib_mcrypt_generic($td, 'This is very important data'));
+        $phpseclib = \bin2hex(phpseclib_mcrypt_generic($td, 'This is very important data'));
 
         $this->assertEquals($mcrypt, $phpseclib);
     }
@@ -563,14 +563,14 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
      */
     public function testMiddleKey2()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be demonstrate it\'s behaviors');
         }
 
         $this->setExpectedException('PHPUnit_Framework_Error_Warning');
 
-        $key = str_repeat('z', 20);
-        $iv = str_repeat('z', 16);
+        $key = \str_repeat('z', 20);
+        $iv = \str_repeat('z', 16);
 
         $plaintext = 'a';
 
@@ -584,8 +584,8 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
     {
         $this->setExpectedException('PHPUnit_Framework_Error_Warning');
 
-        $key = str_repeat('z', 20);
-        $iv = str_repeat('z', 16);
+        $key = \str_repeat('z', 20);
+        $iv = \str_repeat('z', 16);
 
         $plaintext = 'a';
 
@@ -594,22 +594,22 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
     public function testShortKey()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
-        $key = str_repeat('z', 4);
-        $iv = str_repeat('z', 16);
+        $key = \str_repeat('z', 4);
+        $iv = \str_repeat('z', 16);
 
         $plaintext = 'a';
 
         $td = mcrypt_module_open('rijndael-128', '', 'cbc', '');
         mcrypt_generic_init($td, $key, $iv);
-        $mcrypt = bin2hex(mcrypt_generic($td, 'This is very important data'));
+        $mcrypt = \bin2hex(mcrypt_generic($td, 'This is very important data'));
 
         $td = phpseclib_mcrypt_module_open('rijndael-128', '', 'cbc', '');
         phpseclib_mcrypt_generic_init($td, $key, $iv);
-        $phpseclib = bin2hex(phpseclib_mcrypt_generic($td, 'This is very important data'));
+        $phpseclib = \bin2hex(phpseclib_mcrypt_generic($td, 'This is very important data'));
 
         $this->assertEquals($mcrypt, $phpseclib);
     }
@@ -619,37 +619,37 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
      */
     public function testStream()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
         $passphrase = 'My secret';
         $plaintext = 'Secret secret secret data';
 
-        $iv = substr(md5('iv' . $passphrase, true), 0, 8);
-        $key = substr(md5('pass1' . $passphrase, true) .
-                      md5('pass2' . $passphrase, true), 0, 24);
+        $iv = \substr(\md5('iv' . $passphrase, true), 0, 8);
+        $key = \substr(\md5('pass1' . $passphrase, true) .
+                      \md5('pass2' . $passphrase, true), 0, 24);
         $opts = array('iv' => $iv, 'key' => $key);
 
-        $expected = substr($plaintext . $plaintext, 0, 48);
+        $expected = \substr($plaintext . $plaintext, 0, 48);
 
-        $fp = fopen('php://memory', 'wb+');
-        stream_filter_append($fp, 'mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
-        fwrite($fp, $plaintext . $plaintext);
-        rewind($fp);
-        $reference = bin2hex(fread($fp, 1024));
-        fclose($fp);
+        $fp = \fopen('php://memory', 'wb+');
+        \stream_filter_append($fp, 'mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
+        \fwrite($fp, $plaintext . $plaintext);
+        \rewind($fp);
+        $reference = \bin2hex(\fread($fp, 1024));
+        \fclose($fp);
 
-        $fp = fopen('php://memory', 'wb+');
-        stream_filter_append($fp, 'mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
-        fwrite($fp, $plaintext);
-        fwrite($fp, $plaintext);
-        rewind($fp);
-        $mcrypt = bin2hex(fread($fp, 1024));
-        stream_filter_append($fp, 'mdecrypt.tripledes', STREAM_FILTER_READ, $opts);
-        rewind($fp);
-        $decrypted = fread($fp, 1024);
-        fclose($fp);
+        $fp = \fopen('php://memory', 'wb+');
+        \stream_filter_append($fp, 'mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
+        \fwrite($fp, $plaintext);
+        \fwrite($fp, $plaintext);
+        \rewind($fp);
+        $mcrypt = \bin2hex(\fread($fp, 1024));
+        \stream_filter_append($fp, 'mdecrypt.tripledes', STREAM_FILTER_READ, $opts);
+        \rewind($fp);
+        $decrypted = \fread($fp, 1024);
+        \fclose($fp);
 
         // this demonstrates that streams operate in continuous mode
         $this->assertEquals($reference, $mcrypt);
@@ -657,16 +657,16 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         // this demonstrates how to decrypt encrypted data
         $this->assertEquals($expected, $decrypted);
 
-        $fp = fopen('php://memory', 'wb+');
-        stream_filter_append($fp, 'phpseclib.mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
-        fwrite($fp, $plaintext);
-        fwrite($fp, $plaintext);
-        rewind($fp);
-        $compat = bin2hex(fread($fp, 1024));
-        stream_filter_append($fp, 'phpseclib.mdecrypt.tripledes', STREAM_FILTER_READ, $opts);
-        rewind($fp);
-        $decrypted = fread($fp, 1024);
-        fclose($fp);
+        $fp = \fopen('php://memory', 'wb+');
+        \stream_filter_append($fp, 'phpseclib.mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
+        \fwrite($fp, $plaintext);
+        \fwrite($fp, $plaintext);
+        \rewind($fp);
+        $compat = \bin2hex(\fread($fp, 1024));
+        \stream_filter_append($fp, 'phpseclib.mdecrypt.tripledes', STREAM_FILTER_READ, $opts);
+        \rewind($fp);
+        $decrypted = \fread($fp, 1024);
+        \fclose($fp);
 
         // this demonstrates that mcrypt's stream and phpseclib's stream's have identical output
         $this->assertEquals($mcrypt, $compat);
@@ -677,14 +677,14 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
         // in the case of cbc the length is a multiple of the block size. extra characters are added
         // when enough are present for another block to be added
-        $this->assertNotEquals(strlen($mcrypt), strlen($plaintext) * 2);
+        $this->assertNotEquals(\strlen($mcrypt), \strlen($plaintext) * 2);
     }
 
     // i'd have a testRC4Stream method were it not for https://bugs.php.net/72535
 
     public function testShortKeyIVStream()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
@@ -694,19 +694,19 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $key = 'z';
         $opts = array('iv' => $iv, 'key' => $key);
 
-        $fp = fopen('php://memory', 'wb+');
-        stream_filter_append($fp, 'mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
-        fwrite($fp, $plaintext);
-        rewind($fp);
-        $mcrypt = bin2hex(fread($fp, 1024));
-        fclose($fp);
+        $fp = \fopen('php://memory', 'wb+');
+        \stream_filter_append($fp, 'mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
+        \fwrite($fp, $plaintext);
+        \rewind($fp);
+        $mcrypt = \bin2hex(\fread($fp, 1024));
+        \fclose($fp);
 
-        $fp = fopen('php://memory', 'wb+');
-        stream_filter_append($fp, 'phpseclib.mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
-        fwrite($fp, $plaintext);
-        rewind($fp);
-        $compat = bin2hex(fread($fp, 1024));
-        fclose($fp);
+        $fp = \fopen('php://memory', 'wb+');
+        \stream_filter_append($fp, 'phpseclib.mcrypt.tripledes', STREAM_FILTER_WRITE, $opts);
+        \fwrite($fp, $plaintext);
+        \rewind($fp);
+        $compat = \bin2hex(\fread($fp, 1024));
+        \fclose($fp);
 
         $this->assertEquals($mcrypt, $compat);
     }
@@ -722,55 +722,55 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $iv = '5dc7a17ebe32b6e62f0b5f9519d57afb';
         $opts = array('iv' => $iv, 'key' => $key);
 
-        $filename = tempnam(sys_get_temp_dir(), 'phpseclib-test-');
+        $filename = \tempnam(\sys_get_temp_dir(), 'phpseclib-test-');
 
-        $fp = fopen($filename, 'wb');
-        stream_filter_append($fp, 'convert.base64-encode', STREAM_FILTER_WRITE);
-        stream_filter_append($fp, 'phpseclib.mcrypt.rijndael-256', STREAM_FILTER_WRITE, $opts);
-        fwrite($fp, $original);
-        fclose($fp);
+        $fp = \fopen($filename, 'wb');
+        \stream_filter_append($fp, 'convert.base64-encode', STREAM_FILTER_WRITE);
+        \stream_filter_append($fp, 'phpseclib.mcrypt.rijndael-256', STREAM_FILTER_WRITE, $opts);
+        \fwrite($fp, $original);
+        \fclose($fp);
 
-        $fp = fopen($filename, 'rb');
-        stream_filter_append($fp, 'phpseclib.mdecrypt.rijndael-256', STREAM_FILTER_READ, $opts);
-        stream_filter_append($fp, 'convert.base64-decode', STREAM_FILTER_READ);
-        $decrypted = fread($fp, 1024);
-        fclose($fp);
+        $fp = \fopen($filename, 'rb');
+        \stream_filter_append($fp, 'phpseclib.mdecrypt.rijndael-256', STREAM_FILTER_READ, $opts);
+        \stream_filter_append($fp, 'convert.base64-decode', STREAM_FILTER_READ);
+        $decrypted = \fread($fp, 1024);
+        \fclose($fp);
 
         $this->assertEquals($original, $decrypted);
     }
 
     public function testBlowfish()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
-        $key = str_repeat('z', phpseclib_mcrypt_module_get_algo_key_size('blowfish'));
-        $iv = str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('blowfish'));
+        $key = \str_repeat('z', phpseclib_mcrypt_module_get_algo_key_size('blowfish'));
+        $iv = \str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('blowfish'));
 
-        $plaintext = str_repeat('a', 100);
+        $plaintext = \str_repeat('a', 100);
 
         $mcrypt = mcrypt_encrypt('blowfish', $key, $plaintext, 'cbc', $iv);
         $compat = phpseclib_mcrypt_encrypt('blowfish', $key, $plaintext, 'cbc', $iv);
-        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+        $this->assertEquals(\bin2hex($mcrypt), \bin2hex($compat));
     }
 
     public function testBlowfishShortKey()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
-        $iv = str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('blowfish'));
+        $iv = \str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('blowfish'));
 
-        $plaintext = str_repeat('a', 100);
+        $plaintext = \str_repeat('a', 100);
 
         $key_source = 'abcdef';
-        for ($i = 1; $i < strlen($key_source); $i++) {
-            $key = substr($key_source, 0, $i);
+        for ($i = 1; $i < \strlen($key_source); $i++) {
+            $key = \substr($key_source, 0, $i);
             $mcrypt = mcrypt_encrypt('blowfish', $key, $plaintext, 'cbc', $iv);
             $compat = phpseclib_mcrypt_encrypt('blowfish', $key, $plaintext, 'cbc', $iv);
-            $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+            $this->assertEquals(\bin2hex($mcrypt), \bin2hex($compat));
         }
     }
 
@@ -779,7 +779,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
      */
     public function test2DES()
     {
-        if (!extension_loaded('mcrypt')) {
+        if (!\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt must be installed to compare the output of the shim to the original mcrypt');
         }
 
@@ -798,24 +798,24 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $compat = phpseclib_mcrypt_generic($td, $plaintext);
         phpseclib_mcrypt_generic_deinit($td);
 
-        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+        $this->assertEquals(\bin2hex($mcrypt), \bin2hex($compat));
     }
 
     public function testCFB()
     {
-        $key = str_repeat('z', phpseclib_mcrypt_module_get_algo_key_size('rijndael-128'));
-        $iv = str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('rijndael-128'));
+        $key = \str_repeat('z', phpseclib_mcrypt_module_get_algo_key_size('rijndael-128'));
+        $iv = \str_repeat('z', phpseclib_mcrypt_module_get_algo_block_size('rijndael-128'));
 
-        $plaintext = str_repeat('a', 100);
+        $plaintext = \str_repeat('a', 100);
 
         $mcrypt = mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cfb', $iv);
         $compat = phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, 'cfb', $iv);
-        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+        $this->assertEquals(\bin2hex($mcrypt), \bin2hex($compat));
     }
 
     public function testMcryptGenericWithTwoParamsPHPPre71()
     {
-        if (version_compare(PHP_VERSION, '7.1.0') >= 0) {
+        if (\version_compare(PHP_VERSION, '7.1.0') >= 0) {
             $this->markTestSkipped('PHPUnit_Framework_Error_Warning exception is thrown for legacy PHP versions only');
         }
 
@@ -827,7 +827,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
     public function testMcryptGenericWithTwoParamsPHPPost71()
     {
-        if (version_compare(PHP_VERSION, '7.1.0') < 0) {
+        if (\version_compare(PHP_VERSION, '7.1.0') < 0) {
             $this->markTestSkipped('ArgumentCountError exception is thrown for newer PHP versions only');
         }
 
@@ -894,10 +894,10 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $this->assertSame($expected_iv_size, mcrypt_get_iv_size($cipher, $mode));
         $this->assertSame($expected_iv_size, phpseclib_mcrypt_get_iv_size($cipher, $mode));
 
-        $key = str_repeat('X', phpseclib_mcrypt_get_key_size($cipher, $mode));
-        $iv = str_repeat('Y', $input_iv_size);
+        $key = \str_repeat('X', phpseclib_mcrypt_get_key_size($cipher, $mode));
+        $iv = \str_repeat('Y', $input_iv_size);
 
-        if ($ext_or_compat === 'ext' && !extension_loaded('mcrypt')) {
+        if ($ext_or_compat === 'ext' && !\extension_loaded('mcrypt')) {
             $this->markTestSkipped('mcrypt extension not loaded');
         }
 
@@ -938,34 +938,34 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         if (!$validMode) {
             return;
         }
-        $key = str_repeat('a', 16);
-        $iv = str_repeat('b', 16);
-        $plaintext = str_repeat('c', 16);
+        $key = \str_repeat('a', 16);
+        $iv = \str_repeat('b', 16);
+        $plaintext = \str_repeat('c', 16);
         $mcrypt = mcrypt_encrypt('rijndael-128', $key, $plaintext, $modeName, $iv);
         $compat = phpseclib_mcrypt_encrypt('rijndael-128', $key, $plaintext, $modeName, $iv);
-        $this->assertEquals(bin2hex($mcrypt), bin2hex($compat));
+        $this->assertEquals(\bin2hex($mcrypt), \bin2hex($compat));
     }
 
     public function test128ByteRC2Key()
     {
-        $key = str_repeat('z', 128);
-        $iv = str_repeat('z', 8);
+        $key = \str_repeat('z', 128);
+        $iv = \str_repeat('z', 8);
         $plaintext = 'This is very important data';
         $ciphertext = '3280b05de0f597a606c14fa129da7569e374001742c114477de1d510253099a2';
 
         $td = phpseclib_mcrypt_module_open('rc2', '', 'cbc', '');
         phpseclib_mcrypt_generic_init($td, $key, $iv);
-        $mcrypt = bin2hex(phpseclib_mcrypt_generic($td, $plaintext));
+        $mcrypt = \bin2hex(phpseclib_mcrypt_generic($td, $plaintext));
 
         $this->assertEquals(
             $ciphertext,
             $mcrypt
         );
 
-        if (extension_loaded('mcrypt')) {
+        if (\extension_loaded('mcrypt')) {
             $td = mcrypt_module_open('rc2', '', 'cbc', '');
             mcrypt_generic_init($td, $key, $iv);
-            $mcrypt = bin2hex(mcrypt_generic($td, $plaintext));
+            $mcrypt = \bin2hex(mcrypt_generic($td, $plaintext));
 
             $this->assertEquals(
                 $ciphertext,
@@ -1041,14 +1041,14 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 
     public function setExpectedException($name, $message = null, $code = null)
     {
-        if (version_compare(PHP_VERSION, '7.0.0') < 0) {
+        if (\version_compare(PHP_VERSION, '7.0.0') < 0) {
             parent::setExpectedException($name, $message, $code);
             return;
         }
         switch ($name) {
             case 'PHPUnit_Framework_Error_Notice':
             case 'PHPUnit_Framework_Error_Warning':
-                $name = str_replace('_', '\\', $name);
+                $name = \str_replace('_', '\\', $name);
         }
         $this->expectException($name);
         if (!empty($message)) {
