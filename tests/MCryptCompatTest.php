@@ -4,24 +4,24 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
 {
     public function testAlgorithmList()
     {
-        $this->assertInternalType('array', phpseclib_mcrypt_list_algorithms());
+        $this->assertIsArray(phpseclib_mcrypt_list_algorithms());
     }
 
     public function testListAlgorithms()
     {
-        $this->assertInternalType('array', phpseclib_mcrypt_list_algorithms());
+        $this->assertIsArray(phpseclib_mcrypt_list_algorithms());
     }
 
     public function testListsModes()
     {
-        $this->assertInternalType('array', phpseclib_mcrypt_list_modes());
+        $this->assertIsArray(phpseclib_mcrypt_list_modes());
     }
 
     public function testMcryptCreateIv()
     {
         $expectedLen = 20;
         $result = phpseclib_mcrypt_create_iv($expectedLen);
-        $this->assertInternalType('string', $result);
+        $this->assertIsString($result);
         $this->assertEquals($expectedLen, strlen($result));
     }
 
@@ -148,7 +148,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
     {
         $td = phpseclib_mcrypt_module_open($moduleName, '', $cipherMode, '');
         $result = phpseclib_mcrypt_enc_get_algorithms_name($td);
-        $this->assertContains($expectedContainStr, $result);
+        $this->assertStringContainsString($expectedContainStr, $result);
     }
 
     public function testMcryptEncGetModesName()
@@ -1057,5 +1057,38 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         if (!empty($code)) {
             $this->expectExceptionCode($code);
         }
+    }
+
+    // assertIsArray was not introduced until PHPUnit 8
+    public static function assertIsArray($actual, $message = '')
+    {
+        if (method_exists('\PHPUnit\Framework\TestCase', 'assertIsArray')) {
+            parent::assertIsArray($actual, $message);
+            return;
+        }
+
+        parent::assertInternalType('array', $actual, $message);
+    }
+
+    // assertIsString was not introduced until PHPUnit 8
+    public static function assertIsString($actual, $message = '')
+    {
+        if (method_exists('\PHPUnit\Framework\TestCase', 'assertIsString')) {
+            parent::assertIsString($actual, $message);
+            return;
+        }
+
+        parent::assertInternalType('string', $actual, $message);
+    }
+
+    // assertContains is deprecated for strings in PHPUnit 8
+    public static function assertStringContainsString($needle, $haystack, $message = '')
+    {
+        if (method_exists('\PHPUnit\Framework\TestCase', 'assertStringContainsString')) {
+            parent::assertStringContainsString($needle, $haystack, $message);
+            return;
+        }
+
+        parent::assertContains($needle, $haystack, $message);
     }
 }
