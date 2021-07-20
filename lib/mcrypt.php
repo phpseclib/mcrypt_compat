@@ -110,7 +110,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     /**
      * Sets the key
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @param string $key
      * @access private
      */
@@ -174,7 +174,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     /**
      * Sets the IV
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @param string $iv
      * @access private
      */
@@ -331,7 +331,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      *
      * Gets the maximum supported key size of the algorithm in bytes.
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @return int
      * @access public
      */
@@ -480,7 +480,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      * descriptor in bytes. An IV is used in cbc, cfb and ofb modes, and in some algorithms
      * in stream mode.
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @return int
      * @access public
      */
@@ -494,7 +494,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      *
      * Gets the blocksize of the opened algorithm.
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @return int
      * @access public
      */
@@ -528,7 +528,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      *
      * This function returns the name of the algorithm.
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @return string|bool
      * @access public
      */
@@ -560,7 +560,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      *
      * This function returns the name of the mode.
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @return string|bool
      * @access public
      */
@@ -580,7 +580,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      *
      * Tells whether the algorithm of the opened mode works on blocks (e.g. FALSE for stream, and TRUE for cbc, cfb, ofb)..
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @return bool
      * @access public
      */
@@ -594,7 +594,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      *
      * Tells whether the algorithm of the opened mode is a block algorithm.
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @return bool
      * @access public
      */
@@ -608,7 +608,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      *
      * Tells whether the opened mode outputs blocks (e.g. TRUE for cbc and ecb, and FALSE for cfb and stream).
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @return bool
      * @access public
      */
@@ -622,7 +622,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      *
      * This function runs the self test on the algorithm specified by the descriptor td.
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @return bool
      * @access public
      */
@@ -634,7 +634,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     /**
      * This function initializes all buffers needed for en/decryption.
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @param string $key
      * @param string $iv
      * @return int
@@ -668,7 +668,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      *
      * Performs checks common to both mcrypt_generic and mdecrypt_generic
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @param string $data
      * @param string $op
      * @return string|bool
@@ -716,7 +716,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      * space (ASCII 32), the data will be damaged by this removal. Store data in a tinyblob/tinytext
      * (or larger) field instead.
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @param string $data
      * @return string|bool
      * @access public
@@ -732,7 +732,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      * This function decrypts data. Note that the length of the returned string can in fact be
      * longer than the unencrypted string, due to the padding of the data.
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @param string $data
      * @return string|bool
      * @access public
@@ -750,7 +750,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      * mcrypt_module_close() yourself. (But PHP does this for you at the end of the
      * script.)
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @return bool
      * @access public
      */
@@ -771,7 +771,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      *
      * Closes the specified encryption handle.
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @return bool
      * @access public
      */
@@ -818,7 +818,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      *
      * Gets the supported key sizes of the opened algorithm.
      *
-     * @param \phpseclib\Crypt\Base $td
+     * @param Base $td
      * @return array
      * @access public
      */
