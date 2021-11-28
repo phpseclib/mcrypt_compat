@@ -1104,6 +1104,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
          * @return int
          * @access public
          */
+        #[\ReturnTypeWillChange]
         public function filter($in, $out, &$consumed, $closing)
         {
             $newlen = 0;
@@ -1157,6 +1158,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
          * @return bool
          * @access public
          */
+        #[\ReturnTypeWillChange]
         public function onCreate()
         {
             if (!isset($this->params) || !is_array($this->params)) {
@@ -1220,6 +1222,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
          * @link http://php.net/manual/en/php-user-filter.onclose.php
          * @access public
          */
+        #[\ReturnTypeWillChange]
         public function onClose()
         {
             if ($this->bh) {
