@@ -180,7 +180,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_set_iv(Base $td, $iv)
     {
-        if ($td->mode != Base::MODE_ECB && $td->mode != Base::MODE_STREAM) {
+        if ($td->getMode() != 'ecb' && $td->getMode() != 'stream') {
             $length = $td->getBlockLength() >> 3;
             $iv = str_pad(substr($iv, 0, $length), $length, "\0");
             $td->setIV($iv);
@@ -565,13 +565,16 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_mcrypt_enc_get_modes_name(Base $td)
     {
-        if (!isset($td->mcrypt_mode)) {
-            return false;
+        $mode = $td->getMode();
+        switch ($mode) {
+            case 'cfb':
+            case 'ofb';
+                return 'n' . strtoupper($mode);
+            case 'cfb8':
+                return strtoupper(substr($mode, 0, 3));
+            default:
+                return strtoupper($mode);
         }
-        $mode = strtoupper($td->mcrypt_mode);
-        return $mode[0] == 'N' ?
-            'n' . substr($mode, 1) :
-            $mode;
     }
 
     /**
@@ -585,7 +588,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_mcrypt_enc_is_block_algorithm_mode(Base $td)
     {
-        return $td->mcrypt_mode != 'stream';
+        return $td->getMode() != 'stream';
     }
 
     /**
@@ -613,7 +616,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_mcrypt_enc_is_block_mode(Base $td)
     {
-        return $td->mcrypt_mode == 'ecb' || $td->mcrypt_mode == 'cbc';
+        return $td->getMode() == 'ecb' || $td->getMode() == 'cbc';
     }
 
     /**
@@ -642,7 +645,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     function phpseclib_mcrypt_generic_init(Base $td, $key, $iv)
     {
         $iv_size = phpseclib_mcrypt_enc_get_iv_size($td);
-        if (strlen($iv) != $iv_size && $td->mode != Base::MODE_ECB) {
+        if (strlen($iv) != $iv_size && $td->getMode() != 'ecb') {
             trigger_error('mcrypt_generic_init(): Iv size incorrect; supplied length: ' . strlen($iv) . ', needed: ' . $iv_size, E_USER_WARNING);
         }
         if (!strlen($key)) {
