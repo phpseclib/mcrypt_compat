@@ -1,16 +1,28 @@
 language: php
 
-dist: xenial
-
-php:
-  - 5.6
-  - 7.0
-  - 7.1
-  - 7.2
-  - 7.3
-  - 7.4
-  - 8.0
-  - nightly
+matrix:
+  include:
+    - php: 5.6
+      dist: xenial
+    - php: 7.0
+      dist: xenial
+    - php: 7.1
+      dist: xenial
+    - php: 7.2
+      dist: xenial
+    - php: 7.3
+      dist: xenial
+    - php: 7.4
+      dist: xenial
+    - php: 8.0
+      dist: bionic
+    - php: 8.1.0
+      dist: bionic
+    - php: nightly
+      dist: bionic
+  fast_finish: true
+  allow_failures:
+    - php: nightly
 
 matrix:
   fast_finish: true
