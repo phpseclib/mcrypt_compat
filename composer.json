@@ -1,6 +1,6 @@
 {
     "name":         "phpseclib/mcrypt_compat",
-    "description":  "PHP 5.x/7.x polyfill for mcrypt extension",
+    "description":  "PHP 5.x-8.x polyfill for mcrypt extension",
     "keywords": [
             "mcrypt",
             "encryption",
