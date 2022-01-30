@@ -44,6 +44,7 @@ composer require phpseclib/mcrypt_compat
 - ctr
 - ecb
 - nofb
+- ofb
 - stream
 
-Although `nofb` is supported `ofb` is not. Further, mcrypt_compat's `ncfb` implementation has some incompatibles with mcrypt's implementation where `mcrypt_generic` and `mdecrypt_generic` are concerned. The unit tests elaborate.
+mcrypt_compat's `ncfb` implementation has some incompatibles with mcrypt's implementation where `mcrypt_generic` and `mdecrypt_generic` are concerned. The unit tests elaborate.
