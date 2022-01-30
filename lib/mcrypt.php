@@ -226,7 +226,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             'ecb',
             'ncfb',
             'nofb',
-            //'ofb',
+            'ofb',
             'stream'
         );
     }
@@ -273,6 +273,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             'ecb' => Base::MODE_ECB,
             'cbc' => Base::MODE_CBC,
             'cfb' => Base::MODE_CFB8,
+            'ofb' => Base::MODE_OFB8,
             'ncfb'=> Base::MODE_CFB,
             'nofb'=> Base::MODE_OFB,
             'stream' => Base::MODE_STREAM
@@ -571,6 +572,8 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             Base::MODE_CBC => 'CBC',
             Base::MODE_CFB => 'nCFB',
             Base::MODE_OFB => 'nOFB',
+            Base::MODE_CFB8 => 'CFB',
+            Base::MODE_OFB8 => 'OFB',
             Base::MODE_STREAM => 'STREAM'
         );
 
@@ -847,6 +850,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             case 'ctr':
             case 'ecb':
             case 'cfb':
+            case 'ofb':
             case 'ncfb':
             case 'nofb':
                 return true;

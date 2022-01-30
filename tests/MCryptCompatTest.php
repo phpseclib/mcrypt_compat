@@ -962,6 +962,53 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         }
     }
 
+    public function testOFB()
+    {
+        $key = str_repeat('x', 32);
+        $iv = str_repeat('x', 32);
+        $plaintext = 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz';
+        $ciphertext = '3d49c7fab4f20c3cc2a54e5c0a22a4feceffb6fc758ee3800380614042c567731a35cf';
+
+        $td = phpseclib_mcrypt_module_open('rijndael-256', '', 'ofb', '');
+        phpseclib_mcrypt_generic_init($td, $key, $iv);
+        $mcrypt = bin2hex(phpseclib_mcrypt_generic($td, $plaintext));
+
+        $this->assertEquals(
+            $ciphertext,
+            $mcrypt
+        );
+
+        $td = phpseclib_mcrypt_module_open('rijndael-256', '', 'ofb', '');
+        phpseclib_mcrypt_generic_init($td, $key, $iv);
+        $mcrypt = bin2hex(phpseclib_mcrypt_generic($td, substr($plaintext, 0, -1)));
+        $mcrypt.= bin2hex(phpseclib_mcrypt_generic($td, substr($plaintext, -1)));
+
+        $this->assertEquals(
+            $ciphertext,
+            $mcrypt
+        );
+
+        $td = phpseclib_mcrypt_module_open('rijndael-256', '', 'ofb', '');
+        phpseclib_mcrypt_generic_init($td, $key, $iv);
+        $reference = phpseclib_mdecrypt_generic($td, pack('H*', $ciphertext));
+
+        $this->assertEquals(
+            $plaintext,
+            $reference
+        );
+
+        if (extension_loaded('mcrypt')) {
+            $td = mcrypt_module_open('rijndael-256', '', 'ofb', '');
+            mcrypt_generic_init($td, $key, $iv);
+            $mcrypt = bin2hex(mcrypt_generic($td, $plaintext));
+
+            $this->assertEquals(
+                $ciphertext,
+                $mcrypt
+            );
+        }
+    }
+
     public function mcryptModuleNameProvider()
     {
         return array(
@@ -997,6 +1044,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
             array('ctr', true),
             array('ecb', true),
             array('cfb', true),
+            array('ofb', true),
             array('ncfb', true),
             array('nofb', true),
             array('invalid-mode', false)
