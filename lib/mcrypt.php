@@ -108,6 +108,31 @@ if (!defined('MCRYPT_MODE_ECB')) {
 
 if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     /**
+     * Find whether the type of a variable is string (or could be converted to one)
+     *
+     * @param mixed $var
+     * @return bool
+     */
+    function phpseclib_is_stringable($var)
+    {
+        return is_string($var) || (is_object($var) && method_exists($var, '__toString'));
+    }
+
+    /**
+     * Returns the string length
+     *
+     * PHP8.1 emits a warning if $string isn't a string
+     *
+     * @param string $string
+     * @return int
+     * @access private
+     */
+    function phpseclib_strlen($string)
+    {
+        return phpseclib_is_stringable($string) ? strlen($string) : 0;
+    }
+
+    /**
      * Sets the key
      *
      * @param Base $td
@@ -182,7 +207,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     {
         if ($td->mode != Base::MODE_ECB && $td->mode != Base::MODE_STREAM) {
             $length = $td->getBlockLength() >> 3;
-            $iv = str_pad(substr($iv, 0, $length), $length, "\0");
+            $iv = str_pad(substr(phpseclib_is_stringable($iv) ? $iv : '', 0, $length), $length, "\0");
             $td->setIV($iv);
         }
     }
@@ -648,10 +673,10 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     function phpseclib_mcrypt_generic_init(Base $td, $key, $iv)
     {
         $iv_size = phpseclib_mcrypt_enc_get_iv_size($td);
-        if (strlen($iv) != $iv_size && $td->mode != Base::MODE_ECB) {
-            trigger_error('mcrypt_generic_init(): Iv size incorrect; supplied length: ' . strlen($iv) . ', needed: ' . $iv_size, E_USER_WARNING);
+        if (phpseclib_strlen($iv) != $iv_size && $td->mode != Base::MODE_ECB) {
+            trigger_error('mcrypt_generic_init(): Iv size incorrect; supplied length: ' . phpseclib_strlen($iv) . ', needed: ' . $iv_size, E_USER_WARNING);
         }
-        if (!strlen($key)) {
+        if (!phpseclib_strlen($key)) {
             trigger_error('mcrypt_generic_init(): Key size is 0', E_USER_WARNING);
             return -3;
         }
