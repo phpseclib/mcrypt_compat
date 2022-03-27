@@ -40,6 +40,7 @@ use phpseclib3\Crypt\RC2;
 use phpseclib3\Crypt\RC4;
 use phpseclib3\Crypt\Random;
 use phpseclib3\Crypt\Common\SymmetricKey as Base;
+use phpseclib3\Common\Functions\Strings;
 
 if (!defined('MCRYPT_MODE_ECB')) {
     /**#@+
@@ -107,6 +108,20 @@ if (!defined('MCRYPT_MODE_ECB')) {
 }
 
 if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
+    /**
+     * Returns the string length
+     *
+     * PHP8.1 emits a warning if $string isn't a string
+     *
+     * @param string $string
+     * @return int
+     * @access private
+     */
+    function phpseclib_strlen($string)
+    {
+        return Strings::is_stringable($string) ? strlen($string) : 0;
+    }
+
     /**
      * Sets the key
      *
@@ -182,7 +197,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     {
         if ($td->getMode() != 'ecb' && $td->getMode() != 'stream') {
             $length = $td->getBlockLength() >> 3;
-            $iv = str_pad(substr($iv, 0, $length), $length, "\0");
+            $iv = str_pad(substr(Strings::is_stringable($iv) ? $iv : '', 0, $length), $length, "\0");
             $td->setIV($iv);
         }
     }
@@ -647,10 +662,10 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     function phpseclib_mcrypt_generic_init(Base $td, $key, $iv)
     {
         $iv_size = phpseclib_mcrypt_enc_get_iv_size($td);
-        if (strlen($iv) != $iv_size && $td->getMode() != 'ecb') {
-            trigger_error('mcrypt_generic_init(): Iv size incorrect; supplied length: ' . strlen($iv) . ', needed: ' . $iv_size, E_USER_WARNING);
+        if (phpseclib_strlen($iv) != $iv_size && $td->getMode() != 'ecb') {
+            trigger_error('mcrypt_generic_init(): Iv size incorrect; supplied length: ' . phpseclib_strlen($iv) . ', needed: ' . $iv_size, E_USER_WARNING);
         }
-        if (!strlen($key)) {
+        if (!phpseclib_strlen($key)) {
             trigger_error('mcrypt_generic_init(): Key size is 0', E_USER_WARNING);
             return -3;
         }
