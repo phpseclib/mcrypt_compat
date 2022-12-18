@@ -348,6 +348,8 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
 
         $cipher->disablePadding();
 
+        $cipher->key = null;
+
         return $cipher;
     }
 
@@ -688,7 +690,6 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         phpseclib_set_iv($td, $iv);
 
         $td->enableContinuousBuffer();
-        $td->mcrypt_polyfill_init = true;
 
         return 0;
     }
@@ -710,7 +711,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         // Warning: mcrypt_generic(): supplied resource is not a valid MCrypt resource
         // that error doesn't really make a lot of sense in this context since $td is not a resource nor should it be one.
         // in light of that we'll just display the same error that you get when you don't call mcrypt_generic_init() at all
-        if (!isset($td->mcrypt_polyfill_init)) {
+        if (!isset($td->key)) {
             trigger_error('m' . $op . '_generic(): Operation disallowed prior to mcrypt_generic_init().', E_USER_WARNING);
             return false;
         }
@@ -786,13 +787,13 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_mcrypt_generic_deinit(Base $td)
     {
-        if (!isset($td->mcrypt_polyfill_init)) {
+        if (!isset($td->key)) {
             trigger_error('mcrypt_generic_deinit(): Could not terminate encryption specifier', E_USER_WARNING);
             return false;
         }
 
         $td->disableContinuousBuffer();
-        unset($td->mcrypt_polyfill_init);
+        $td->key = null;
         return true;
     }
 
@@ -807,7 +808,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_mcrypt_module_close(Base $td)
     {
-        //unset($td->mcrypt_polyfill_init);
+        $td->key = null;
         return true;
     }
 

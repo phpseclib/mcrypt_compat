@@ -1009,6 +1009,14 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         }
     }
 
+    public function testModuleOpenWithoutInit()
+    {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
+        $td = phpseclib_mcrypt_module_open('rijndael-128', '', 'cbc', '');
+        $result = phpseclib_mcrypt_generic($td, 'zzz');
+    }
+
     public function mcryptModuleNameProvider()
     {
         return array(
