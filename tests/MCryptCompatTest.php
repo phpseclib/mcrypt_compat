@@ -240,7 +240,6 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $data = 'data';
         $op = 'operation';
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
-        unset($td->mcrypt_polyfill_init);
         $result = phpseclib_mcrypt_generic_helper($td, $data, $op);
     }
 
@@ -249,7 +248,6 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         $this->setExpectedException('PHPUnit_Framework_Error_Warning');
 
         $td = phpseclib_mcrypt_module_open('blowfish', '', 'cbc', '');
-        unset($td->mcrypt_polyfill_init);
         $result = phpseclib_mcrypt_generic_deinit($td);
     }
 
@@ -483,7 +481,7 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
             $v1.= call_user_func($prefix . 'mdecrypt_generic', $td, str_repeat('c', $block));
             $v2.= str_repeat('c', $block);
         }
-        call_user_func($prefix . 'mcrypt_generic_deinit', $td);
+        ($prefix . 'mcrypt_generic_deinit')($td);
         call_user_func($prefix . 'mcrypt_generic_init', $td, str_repeat('a', 16), str_repeat('a', 16));
         $v2 = call_user_func($prefix . 'mdecrypt_generic', $td, $v2);
 
@@ -1019,6 +1017,27 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
                 $mcrypt
             );
         }
+    }
+
+    public function testModuleOpenWithoutInit()
+    {
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
+        $td = phpseclib_mcrypt_module_open('rijndael-128', '', 'cbc', '');
+        $result = phpseclib_mcrypt_generic($td, 'zzz');
+    }
+
+    public function testDeInit()
+    {
+        $key = str_repeat('x', 16);
+        $iv = str_repeat('x', 16);
+
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning');
+
+        $td = phpseclib_mcrypt_module_open('rijndael-128', '', 'cbc', '');
+        phpseclib_mcrypt_generic_init($td, $key, $iv);
+        phpseclib_mcrypt_generic_deinit($td);
+        $result = phpseclib_mcrypt_generic($td, 'zzz');
     }
 
     public function mcryptModuleNameProvider()

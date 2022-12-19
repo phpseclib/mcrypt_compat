@@ -41,6 +41,7 @@ use phpseclib3\Crypt\RC4;
 use phpseclib3\Crypt\Random;
 use phpseclib3\Crypt\Common\SymmetricKey as Base;
 use phpseclib3\Common\Functions\Strings;
+use phpseclib3\Exception\InsufficientSetupException;
 
 if (!defined('MCRYPT_MODE_ECB')) {
     /**#@+
@@ -677,7 +678,6 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         phpseclib_set_iv($td, $iv);
 
         $td->enableContinuousBuffer();
-        $td->mcrypt_polyfill_init = true;
 
         return 0;
     }
@@ -695,15 +695,6 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_mcrypt_generic_helper(Base $td, &$data, $op)
     {
-        // in the orig mcrypt, if mcrypt_generic_init() was called and an empty key was provided you'd get the following error:
-        // Warning: mcrypt_generic(): supplied resource is not a valid MCrypt resource
-        // that error doesn't really make a lot of sense in this context since $td is not a resource nor should it be one.
-        // in light of that we'll just display the same error that you get when you don't call mcrypt_generic_init() at all
-        if (!isset($td->mcrypt_polyfill_init)) {
-            trigger_error('m' . $op . '_generic(): Operation disallowed prior to mcrypt_generic_init().', E_USER_WARNING);
-            return false;
-        }
-
         // phpseclib does not currently provide a way to retrieve the mode once it has been set via "public" methods
         if (phpseclib_mcrypt_enc_is_block_mode($td)) {
             $block_length = phpseclib_mcrypt_enc_get_iv_size($td);
@@ -713,7 +704,16 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             }
         }
 
-        return $op == 'crypt' ? $td->encrypt($data) : $td->decrypt($data);
+        try {
+            return $op == 'crypt' ? $td->encrypt($data) : $td->decrypt($data);
+        } catch (InsufficientSetupException $e) {
+            // in the orig mcrypt, if mcrypt_generic_init() was called and an empty key was provided you'd get the following error:
+            // Warning: mcrypt_generic(): supplied resource is not a valid MCrypt resource
+            // that error doesn't really make a lot of sense in this context since $td is not a resource nor should it be one.
+            // in light of that we'll just display the same error that you get when you don't call mcrypt_generic_init() at all
+            trigger_error('m' . $op . '_generic(): Operation disallowed prior to mcrypt_generic_init().', E_USER_WARNING);
+            return false;
+        }
     }
 
     /**
@@ -773,15 +773,18 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      * @return bool
      * @access public
      */
-    function phpseclib_mcrypt_generic_deinit(Base $td)
+    function phpseclib_mcrypt_generic_deinit(Base &$td)
     {
-        if (!isset($td->mcrypt_polyfill_init)) {
+        $reflectionObject = new \ReflectionObject($td);
+        $reflectionProperty = $reflectionObject->getProperty('key');
+        $reflectionProperty->setAccessible(true); // can be dropped in PHP 8.1.0+
+        if (!strlen($reflectionProperty->getValue($td))) {
             trigger_error('mcrypt_generic_deinit(): Could not terminate encryption specifier', E_USER_WARNING);
             return false;
         }
 
-        $td->disableContinuousBuffer();
-        unset($td->mcrypt_polyfill_init);
+        $class = get_class($td);
+        $td = new $class($td->getMode());
         return true;
     }
 
@@ -796,7 +799,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_mcrypt_module_close(Base $td)
     {
-        //unset($td->mcrypt_polyfill_init);
+        //$td->key = null;
         return true;
     }
 
@@ -1299,7 +1302,7 @@ if (!function_exists('mcrypt_list_algorithms')) {
         return phpseclib_mcrypt_generic($td, $data);
     }
 
-    function mcrypt_generic_deinit(Base $td)
+    function mcrypt_generic_deinit(Base &$td)
     {
         return phpseclib_mcrypt_generic_deinit($td);
     }
