@@ -1178,7 +1178,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_mcrypt_encrypt($cipher, $key, $data, $mode, $iv = null)
     {
-        return defined('PHPSECLIB_MCRYPT_TARGET_VERSION') && version_compare(PHPSECLIB_MCRYPT_TARGET_VERSION, '5.6.0', '>=') ?
+        return !defined('PHPSECLIB_MCRYPT_TARGET_VERSION') || version_compare(PHPSECLIB_MCRYPT_TARGET_VERSION, '5.6.0', '>=') ?
                phpseclib_mcrypt_helper($cipher, $key, $data, $mode, $iv, 'encrypt') :
                phpseclib_mcrypt_helper_old($cipher, $key, $data, $mode, $iv, 'encrypt');
     }
@@ -1198,7 +1198,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
      */
     function phpseclib_mcrypt_decrypt($cipher, $key, $data, $mode, $iv = null)
     {
-        return defined('PHPSECLIB_MCRYPT_TARGET_VERSION') && version_compare(PHPSECLIB_MCRYPT_TARGET_VERSION, '5.6.0', '>=') ?
+        return !defined('PHPSECLIB_MCRYPT_TARGET_VERSION') || version_compare(PHPSECLIB_MCRYPT_TARGET_VERSION, '5.6.0', '>=') ?
                phpseclib_mcrypt_helper($cipher, $key, $data, $mode, $iv, 'decrypt') :
                phpseclib_mcrypt_helper_old($cipher, $key, $data, $mode, $iv, 'decrypt');
     }
