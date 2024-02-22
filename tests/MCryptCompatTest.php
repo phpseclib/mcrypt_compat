@@ -835,6 +835,53 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
         phpseclib_mcrypt_generic_init($td, 'xxx');
     }
 
+    public function testOldMcryptNoIVWarning()
+    {
+        $key = 'key';
+        $data = 'data';
+        $iv = null;
+
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning', 'mcrypt_encrypt(): Attempt to use an empty IV, which is NOT recommended');
+
+        phpseclib_mcrypt_helper_old('rijndael-128', $key, $data, 'cbc', $iv, 'encrypt');
+    }
+
+    public function testOldMcryptShortIVWarning()
+    {
+        $key = 'key';
+        $data = 'data';
+        $iv = 'iv';
+
+        $this->setExpectedException('PHPUnit_Framework_Error_Warning', 'mcrypt_encrypt(): The IV parameter must be as long as the blocksize');
+
+        phpseclib_mcrypt_helper_old('rijndael-128', $key, $data, 'cbc', $iv, 'encrypt');
+    }
+
+    public function testOldMcryptShortIV()
+    {
+        $key = 'key';
+        $data = 'data';
+        $iv = 'iv';
+
+        $result = @phpseclib_mcrypt_helper_old('rijndael-128', $key, $data, 'cbc', $iv, 'encrypt');
+
+        $this->assertEquals('69c48f0bce2c81abd64bbab839080574', bin2hex($result));
+    }
+
+    public function testOldMcryptNoIV()
+    {
+        $key = str_pad('key', 16, "\0");
+        $data = 'data';
+        $iv = null;
+
+        $result = @phpseclib_mcrypt_helper_old('rijndael-128', $key, $data, 'cbc', $iv, 'encrypt');
+
+        // this yields the same result that testOldMcryptShortIV() yields. when the IV is invalid it's assumed to be all null bytes,
+        // whilst a key that's not the right length is either null padded or truncated as appropriate
+
+        $this->assertEquals('69c48f0bce2c81abd64bbab839080574', bin2hex($result));
+    }
+
     public function providerForIVSizeChecks()
     {
         $tests = [

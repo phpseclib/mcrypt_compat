@@ -1,6 +1,6 @@
 # mcrypt_compat
 
-[![Build Status](https://travis-ci.org/phpseclib/mcrypt_compat.svg?branch=master)](https://app.travis-ci.com/github/phpseclib/mcrypt_compat)
+[![CI Status](https://github.com/phpseclib/mcrypt_compat/actions/workflows/ci.yml/badge.svg?branch=1.0&event=push "CI Status")](https://github.com/phpseclib/mcrypt_compat/actions/workflows/ci.yml?query=branch%3A1.0)
 
 PHP 5.x-8.x polyfill for mcrypt extension.
 
