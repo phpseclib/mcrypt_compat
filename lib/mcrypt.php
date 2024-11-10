@@ -585,7 +585,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         $mode = $td->getMode();
         switch ($mode) {
             case 'cfb':
-            case 'ofb';
+            case 'ofb':
                 return 'n' . strtoupper($mode);
             case 'cfb8':
             case 'ofb8':
