@@ -55,6 +55,10 @@ composer require phpseclib/mcrypt_compat
 
 mcrypt_compat's `ncfb` implementation has some incompatibles with mcrypt's implementation where `mcrypt_generic` and `mdecrypt_generic` are concerned. The unit tests elaborate.
 
+## Emulating older PHP versions
+
+The mcrypt extension's behavior underwent changes as new versions of PHP were released. By default mcrypt_compat emulates the behavior of PHP 7.1 but if you need to emulate how mcrypt behaved in, say, PHP 5.3.0, you may do so by doing `define('PHPSECLIB_MCRYPT_TARGET_VERSION', '5.3.0');` before including vendor/autoload.php (if you're using this with Composer).
+
 ## Security contact information
 
 To report a security vulnerability, please use the [Tidelift security contact](https://tidelift.com/security). Tidelift will coordinate the fix and disclosure.
