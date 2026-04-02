@@ -793,7 +793,11 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
     {
         $reflectionObject = new \ReflectionObject($td);
         $reflectionProperty = $reflectionObject->getProperty('key');
-        $reflectionProperty->setAccessible(true); // can be dropped in PHP 8.1.0+
+
+        if (version_compare(phpversion(), '8.1.0', '<')) {
+            $reflectionProperty->setAccessible(true); // can be dropped in PHP 8.1.0+
+        }
+
         if (!strlen($reflectionProperty->getValue($td))) {
             trigger_error('mcrypt_generic_deinit(): Could not terminate encryption specifier', E_USER_WARNING);
             return false;
