@@ -794,8 +794,8 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         $reflectionObject = new \ReflectionObject($td);
         $reflectionProperty = $reflectionObject->getProperty('key');
 
-        if (version_compare(phpversion(), '8.1.0', '<')) {
-            $reflectionProperty->setAccessible(true); // can be dropped in PHP 8.1.0+
+        if (PHPVERSION_ID < 80100) {
+            $reflectionProperty->setAccessible(true);
         }
 
         if (!strlen($reflectionProperty->getValue($td))) {
