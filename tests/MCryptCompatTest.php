@@ -1090,15 +1090,15 @@ class MCryptCompatTest extends PHPUnit\Framework\TestCase
     public function mcryptModuleNameProvider()
     {
         return array(
-            array('twofish', 'cbc', '\phpseclib3\Crypt\Twofish'),
-            array('rijndael-128', 'cbc', '\phpseclib3\Crypt\Rijndael'),
-            array('rijndael-192', 'cbc', '\phpseclib3\Crypt\Rijndael'),
-            array('des', 'cbc', '\phpseclib3\Crypt\DES'),
-            array('rijndael-256', 'cbc', '\phpseclib3\Crypt\Rijndael'),
-            array('blowfish', 'cbc', '\phpseclib3\Crypt\Blowfish'),
-            array('rc2', 'cbc', '\phpseclib3\Crypt\RC2'),
-            array('tripledes', 'cbc', '\phpseclib3\Crypt\TripleDES'),
-            array('arcfour', 'stream', '\phpseclib3\Crypt\RC4')
+            array('twofish', 'cbc', '\phpseclib4\Crypt\Twofish'),
+            array('rijndael-128', 'cbc', '\phpseclib4\Crypt\Rijndael'),
+            array('rijndael-192', 'cbc', '\phpseclib4\Crypt\Rijndael'),
+            array('des', 'cbc', '\phpseclib4\Crypt\DES'),
+            array('rijndael-256', 'cbc', '\phpseclib4\Crypt\Rijndael'),
+            array('blowfish', 'cbc', '\phpseclib4\Crypt\Blowfish'),
+            array('rc2', 'cbc', '\phpseclib4\Crypt\RC2'),
+            array('tripledes', 'cbc', '\phpseclib4\Crypt\TripleDES'),
+            array('arcfour', 'stream', '\phpseclib4\Crypt\RC4')
         );
     }
 

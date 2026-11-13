@@ -31,17 +31,16 @@
  * @link      http://phpseclib.sourceforge.net
  */
 
-use phpseclib3\Crypt\Rijndael;
-use phpseclib3\Crypt\Twofish;
-use phpseclib3\Crypt\Blowfish;
-use phpseclib3\Crypt\TripleDES;
-use phpseclib3\Crypt\DES;
-use phpseclib3\Crypt\RC2;
-use phpseclib3\Crypt\RC4;
-use phpseclib3\Crypt\Random;
-use phpseclib3\Crypt\Common\SymmetricKey as Base;
-use phpseclib3\Common\Functions\Strings;
-use phpseclib3\Exception\InsufficientSetupException;
+use phpseclib4\Crypt\Rijndael;
+use phpseclib4\Crypt\Twofish;
+use phpseclib4\Crypt\Blowfish;
+use phpseclib4\Crypt\TripleDES;
+use phpseclib4\Crypt\DES;
+use phpseclib4\Crypt\RC2;
+use phpseclib4\Crypt\RC4;
+use phpseclib4\Crypt\Common\SymmetricKey as Base;
+use phpseclib4\Common\Functions\Strings;
+use phpseclib4\Exception\InvalidStateException;
 
 if (!defined('MCRYPT_MODE_ECB')) {
     /**#@+
@@ -265,7 +264,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             trigger_error('mcrypt_create_iv(): Cannot create an IV with a size of less than 1 or greater than 2147483647', E_USER_WARNING);
             return '';
         }
-        return Random::string($size);
+        return random_bytes($size);
     }
 
     /**
@@ -706,7 +705,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
 
         try {
             return $op == 'crypt' ? $td->encrypt($data) : $td->decrypt($data);
-        } catch (InsufficientSetupException $e) {
+        } catch (InvalidStateException $e) {
             // in the orig mcrypt, if mcrypt_generic_init() was called and an empty key was provided you'd get the following error:
             // Warning: mcrypt_generic(): supplied resource is not a valid MCrypt resource
             // that error doesn't really make a lot of sense in this context since $td is not a resource nor should it be one.
@@ -798,7 +797,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             $reflectionProperty->setAccessible(true);
         }
 
-        if (!strlen($reflectionProperty->getValue($td))) {
+        if (!strlen((string) $reflectionProperty->getValue($td))) {
             trigger_error('mcrypt_generic_deinit(): Could not terminate encryption specifier', E_USER_WARNING);
             return false;
         }
